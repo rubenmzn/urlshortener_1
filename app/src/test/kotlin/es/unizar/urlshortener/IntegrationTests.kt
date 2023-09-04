@@ -1,7 +1,9 @@
+@file:Suppress("MatchingDeclarationName", "WildcardImport")
+
 package es.unizar.urlshortener
 
 import es.unizar.urlshortener.infrastructure.delivery.ShortUrlDataOut
-import org.apache.http.impl.client.HttpClientBuilder
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -18,7 +20,6 @@ import org.springframework.test.jdbc.JdbcTestUtils
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MultiValueMap
 import java.net.URI
-
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class HttpRequestTest {
@@ -94,7 +95,8 @@ class HttpRequestTest {
 
         val response = restTemplate.postForEntity(
             "http://localhost:$port/api/link",
-            HttpEntity(data, headers), ShortUrlDataOut::class.java
+            HttpEntity(data, headers),
+            ShortUrlDataOut::class.java
         )
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
@@ -112,7 +114,8 @@ class HttpRequestTest {
 
         return restTemplate.postForEntity(
             "http://localhost:$port/api/link",
-            HttpEntity(data, headers), ShortUrlDataOut::class.java
+            HttpEntity(data, headers),
+            ShortUrlDataOut::class.java
         )
     }
 }

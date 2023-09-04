@@ -1,6 +1,7 @@
 # Getting Started with the URL Shortener project
 [![Build Status](../../actions/workflows/ci.yml/badge.svg)](../../actions/workflows/ci.yml)
 
+* [System requirements](#system-requirements)
 * [Overall structure](#overall-structure)
 * [Run](#run)
 * [Build and Run](#build-and-run)
@@ -9,6 +10,25 @@
 * [Repositories](#repositories)
 * [Reference Documentation](#reference-documentation)
 * [Guides](#guides)
+
+## System requirements
+
+This application leverages cutting-edge technologies to deliver a robust and versatile user experience:
+
+1. **Programming Language**: The application is written in [Kotlin 1.9.10](https://kotlinlang.org/), a versatile, 
+   open-source, statically-typed language. Kotlin is renowned for its adaptability and is commonly used for 
+   Android mobile app development. Beyond that, it finds application in server-side development, making it a versatile 
+   choice.
+
+2. **Build System**: The application utilizes [Gradle 8.3](https://gradle.org/) as build system. Gradle is renowned for 
+   its flexibility in automating the software building process. This build automation tool streamlines tasks such as 
+   compiling, linking, and packaging code, ensuring consistency and reliability throughout development.
+
+3. **Framework**: The application employs [Spring Boot 3.1.3](https://docs.spring.io/spring-boot/docs/3.1.3/reference/htmlsingle/) 
+   as a framework. This technology requires Java 17 and is fully compatible up to and including Java 20. 
+   Spring Boot simplifies the creation of production-grade [Spring-based applications](https://spring.io/). 
+   It adopts a highly opinionated approach to the Spring platform and third-party libraries, 
+   enabling developers to initiate projects with minimal hassle.
 
 ## Overall structure
 
@@ -43,7 +63,7 @@ Features that require the connection to a third party or having more than a sing
 The application can be run as follows:
 
 ```shell
-./gradlew :app:bootRun
+./gradlew bootRun
 ```
 
 Now you have a shortener service running at port 8080. You can test that it works as follows:
@@ -74,7 +94,7 @@ $ curl -v -d "url=http://www.unizar.es/" http://localhost:8080/api/link
 And now, we can navigate to the shortened URL.
 
 ```shell
-$ curl -v http://localhost:8080/tiny-6bb9db44
+$ curl -v http://localhost:8080/6bb9db44
 *   Trying ::1:8080...
 * Connected to localhost (::1) port 8080 (#0)
 > GET /tiny-6bb9db44 HTTP/1.1
@@ -97,7 +117,7 @@ The uberjar can be built and then run with:
 
 ```shell
 ./gradlew build
-java -jar app/build/libs/app.jar
+java -jar app/build/libs/app-0.2023.1-SNAPSHOT.jar
 ```
 
 ## Functionalities
@@ -126,7 +146,7 @@ The objects in the domain are:
 The above functionality is available through a simple API:
 
 * `POST /api/link` which creates a short URL from data send by a form.
-* `GET /tiny-{id}` where `id` identifies the short url, deals with redirects, and logs use (i.e. clicks).
+* `GET /{id}` where `id` identifies the short url, deals with redirects, and logs use (i.e. clicks).
 
 In addition, `GET /` returns the landing page of the system.
 
@@ -144,8 +164,8 @@ For further reference, please consider the following sections:
 
 * [Official Gradle documentation](https://docs.gradle.org)
 * [Spring Boot Gradle Plugin Reference Guide](https://docs.spring.io/spring-boot/docs/current/gradle-plugin/reference/htmlsingle/)
-* [Spring Web](https://docs.spring.io/spring-boot/docs/2.7.3/reference/htmlsingle/#boot-features-developing-web-applications)
-* [Spring Data JPA](https://docs.spring.io/spring-boot/docs/2.7.3/reference/htmlsingle/#boot-features-jpa-and-spring-data)
+* [Spring Web](https://docs.spring.io/spring-boot/docs/3.1.3/reference/htmlsingle/#boot-features-developing-web-applications)
+* [Spring Data JPA](https://docs.spring.io/spring-boot/docs/3.1.3/reference/htmlsingle/#boot-features-jpa-and-spring-data)
 
 ## Guides
 

@@ -1,3 +1,5 @@
+@file:Suppress("WildcardImport")
+
 package es.unizar.urlshortener.infrastructure.delivery
 
 import es.unizar.urlshortener.core.*
@@ -23,7 +25,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 @ContextConfiguration(
     classes = [
         UrlShortenerControllerImpl::class,
-        RestResponseEntityExceptionHandler::class]
+        RestResponseEntityExceptionHandler::class
+    ]
 )
 class UrlShortenerControllerTest {
 

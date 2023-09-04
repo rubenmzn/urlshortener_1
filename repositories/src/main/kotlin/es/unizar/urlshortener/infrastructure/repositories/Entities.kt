@@ -1,13 +1,16 @@
+@file:Suppress("WildcardImport")
+
 package es.unizar.urlshortener.infrastructure.repositories
 
+import jakarta.persistence.*
 import java.time.OffsetDateTime
-import javax.persistence.*
 
 /**
  * The [ClickEntity] entity logs clicks.
  */
 @Entity
 @Table(name = "click")
+@Suppress("LongParameterList")
 class ClickEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -26,6 +29,7 @@ class ClickEntity(
  */
 @Entity
 @Table(name = "shorturl")
+@Suppress("LongParameterList")
 class ShortUrlEntity(
     @Id
     val hash: String,

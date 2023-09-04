@@ -7,11 +7,12 @@ import org.springframework.boot.runApplication
  * The marker that makes this project a Spring Boot application.
  */
 @SpringBootApplication
-class UrlShortenerApplication
+class Application
 
 /**
  * The main entry point.
  */
 fun main(args: Array<String>) {
-    runApplication<UrlShortenerApplication>(*args)
+    @Suppress("SpreadOperator")
+    runApplication<Application>(*args)
 }
