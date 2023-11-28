@@ -6,6 +6,7 @@ import es.unizar.urlshortener.core.*
 import es.unizar.urlshortener.core.usecases.CreateShortUrlUseCase
 import es.unizar.urlshortener.core.usecases.LogClickUseCase
 import es.unizar.urlshortener.core.usecases.RedirectUseCase
+import es.unizar.urlshortener.core.usecases.CreateQrUseCase
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.BDDMockito.never
@@ -41,6 +42,10 @@ class UrlShortenerControllerTest {
 
     @MockBean
     private lateinit var createShortUrlUseCase: CreateShortUrlUseCase
+
+    @MockBean
+    private lateinit var createQrUseCase: CreateQrUseCase
+
 
     @Test
     fun `redirectTo returns a redirect when the key exists`() {
@@ -78,6 +83,7 @@ class UrlShortenerControllerTest {
         mockMvc.perform(
             post("/api/link")
                 .param("url", "http://example.com/")
+                .param("qr", "false")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         )
             .andDo(print())
@@ -98,9 +104,63 @@ class UrlShortenerControllerTest {
         mockMvc.perform(
             post("/api/link")
                 .param("url", "ftp://example.com/")
+                .param("qr", "false")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.statusCode").value(400))
+    }  
+
+    @Test
+    fun `get returns a valid qr image if the hash exists`() {
+        given(
+            createShortUrlUseCase.create(
+                url = "http://www.example.com/",
+                data = ShortUrlProperties(
+                    ip = "127.0.0.1",
+                    qr = true
+                )
+            )
+        ).willReturn(ShortUrl("f684a3c4", Redirection("http://www.example.com/")))
+
+        given(
+            createQrUseCase.get(
+                id = "f684a3c4"
+            )
+        ).willReturn("http://example.com/".toByteArray())
+
+        mockMvc.perform(
+            post("/api/link")
+                .param("url", "http://www.example.com/")
+                .param("qr", "true")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        )
+            .andDo(print())
+            .andExpect(status().isCreated)
+            .andExpect(redirectedUrl("http://localhost/f684a3c4"))
+            .andExpect(jsonPath("$.url").value("http://localhost/f684a3c4"))
+
+        mockMvc.perform(
+            get("http://localhost/{id}/qr", "f684a3c4")
+        )
+            .andDo(print())
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.IMAGE_PNG))
+    }
+
+    @Test
+    fun `get returns bad request if the qr can't be found`() {
+        given(
+            createQrUseCase.get(
+                id = "f684a3c4"
+            )
+        ).willAnswer { throw RedirectionNotFound("http://localhost/f684a3c4/qr") }
+
+        mockMvc.perform(
+            get("http://localhost/{id}/qr", "f684a3c4")
+        )
+            .andDo(print())
+            .andExpect(status().isNotFound)
     }
 }
+
