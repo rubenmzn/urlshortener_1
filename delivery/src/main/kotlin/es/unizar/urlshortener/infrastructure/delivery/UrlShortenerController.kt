@@ -7,6 +7,7 @@ import es.unizar.urlshortener.core.usecases.LogClickUseCase
 import es.unizar.urlshortener.core.usecases.RedirectUseCase
 import es.unizar.urlshortener.core.usecases.CreateQrUseCase
 import es.unizar.urlshortener.core.usecases.ReachableUrlCase
+import es.unizar.urlshortener.core.usecases.BulkShortenUrlUseCase
 import es.unizar.urlshortener.core.InvalidUrlException
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.hateoas.server.mvc.linkTo
@@ -22,6 +23,16 @@ import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpHeaders.CONTENT_DISPOSITION
 import org.springframework.http.MediaType.IMAGE_PNG_VALUE
 import java.net.URI
+import org.springframework.core.io.InputStreamResource
+import org.springframework.core.io.Resource
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.multipart.MultipartFile
+import java.io.File
+import java.io.FileWriter
+import java.io.IOException
+import org.springframework.core.io.FileSystemResource
+import java.io.InputStream
 
 
 /**
@@ -47,6 +58,11 @@ interface UrlShortenerController {
      * Generates a qr code for the short url identified by its [id].
      */
     fun qr(id: String, request: HttpServletRequest): ResponseEntity<ByteArrayResource>
+
+     /**
+     * Generates a qr code for the short url identified by its [id].
+     */
+    fun bulkShortenUrl(@RequestParam("file") file: MultipartFile): ResponseEntity<Resource>
 }
 
 /**
@@ -77,7 +93,8 @@ class UrlShortenerControllerImpl(
     val logClickUseCase: LogClickUseCase,
     val createShortUrlUseCase: CreateShortUrlUseCase,
     val reachableUrlCase: ReachableUrlCase,
-    val createQrUseCase: CreateQrUseCase
+    val createQrUseCase: CreateQrUseCase,
+    val bulkShortenUrlUseCase: BulkShortenUrlUseCase
 ) : UrlShortenerController {
 
     @GetMapping("/{id:(?!api|index).*}")
@@ -141,5 +158,37 @@ class UrlShortenerControllerImpl(
         IMAGE_PNG_VALUE), h, HttpStatus.OK)
     }
 
+      @PostMapping("/api/csv", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])// /api/bulkv cambiar nombre
+    override fun bulkShortenUrl(@RequestParam("file") file: MultipartFile): ResponseEntity<Resource>{ 
+        val csvData: InputStream = file.inputStream
+        val shortenedUrls = bulkShortenUrlUseCase.processCsv(csvData)
+        val csvFile = createCsvFile(shortenedUrls)
+        val fileReturn: Resource = FileSystemResource(csvFile)
+        return ResponseEntity
+            .ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=${csvFile.name}")
+            .contentType(MediaType.parseMediaType("text/csv")) //csv5? Diferencia
+            .body(fileReturn)
+    }
+
     
+}
+
+private fun createCsvFile(shortenedUrls: List<String>): File { //Libreria generar csv5
+        val csvFile = File.createTempFile("shortened_urls_", ".csv")
+
+        try {
+            val writer = FileWriter(csvFile)
+            writer.append("Original;Acortada\n")
+
+            for (url in shortenedUrls) {
+                writer.append("$url\n")
+            }
+
+            writer.close()
+        } catch (e: IOException) {
+            println("Error al leer el archivo CSV: ${e.message}")
+        }
+
+        return csvFile
 }
