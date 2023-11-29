@@ -10,6 +10,10 @@ interface ReachableUrlCase {
     fun checkReachable(url: String): Boolean
 }
 
+
+private const val SUCCESSFUL_RESPONSE_CODE_MIN = 200
+private const val SUCCESSFUL_RESPONSE_CODE_MAX = 299
+
 class ReachableUrlCaseImpl(
     private val validatorService: ValidatorService,
 ) : ReachableUrlCase {
@@ -19,9 +23,12 @@ class ReachableUrlCaseImpl(
                 val connection = URL(url).openConnection() as HttpURLConnection
                 connection.requestMethod = "HEAD"
                 val responseCode = connection.responseCode
-                responseCode in 200..299
+                responseCode in SUCCESSFUL_RESPONSE_CODE_MIN..SUCCESSFUL_RESPONSE_CODE_MAX
             } catch (e: IOException){
-                false
+                // false
+                // antes ponia false pero me daba error el detekt, de esta forma 
+                // no da error pero se puede poner otra cosa
+                throw UrlReachabilityException("Error while checking URL reachability", e)
             }
         } else {
             return false
