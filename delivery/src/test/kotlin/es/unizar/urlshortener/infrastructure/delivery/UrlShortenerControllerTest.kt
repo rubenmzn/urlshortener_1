@@ -9,6 +9,7 @@ import es.unizar.urlshortener.core.usecases.RedirectUseCase
 import es.unizar.urlshortener.core.usecases.CreateQrUseCase
 import es.unizar.urlshortener.core.usecases.ReachableUrlCase
 import es.unizar.urlshortener.core.usecases.BulkShortenUrlUseCase
+import es.unizar.urlshortener.core.RabbitMQService
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.BDDMockito.never
@@ -55,6 +56,10 @@ class UrlShortenerControllerTest {
     @Suppress("UnusedPrivateProperty")
     @MockBean
     private lateinit var bulkShortenUrlUseCase: BulkShortenUrlUseCase
+
+    @Suppress("UnusedPrivateProperty")
+    @MockBean
+    private lateinit var rabbitMQService: RabbitMQService
 
 
     @Test

@@ -8,11 +8,13 @@ import es.unizar.urlshortener.core.usecases.ReachableUrlCaseImpl
 import es.unizar.urlshortener.core.usecases.BulkShortenUrlUseCase
 import es.unizar.urlshortener.infrastructure.delivery.HashServiceImpl
 import es.unizar.urlshortener.infrastructure.delivery.QrServiceImpl
+import es.unizar.urlshortener.infrastructure.delivery.RabbitMQServiceImpl
 import es.unizar.urlshortener.infrastructure.delivery.ValidatorServiceImpl
 import es.unizar.urlshortener.infrastructure.repositories.ClickEntityRepository
 import es.unizar.urlshortener.infrastructure.repositories.ClickRepositoryServiceImpl
 import es.unizar.urlshortener.infrastructure.repositories.ShortUrlEntityRepository
 import es.unizar.urlshortener.infrastructure.repositories.ShortUrlRepositoryServiceImpl
+import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -63,4 +65,7 @@ class ApplicationConfiguration(
     @Bean
     fun bulkShortenUrlUseCase() =
         BulkShortenUrlUseCase(shortUrlRepositoryService(), validatorService(), hashService())
+
+    @Bean
+    fun rabbitMQService() = RabbitMQServiceImpl(RabbitTemplate(), createQrUseCase())
 }

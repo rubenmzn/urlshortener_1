@@ -10,6 +10,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.webjars:bootstrap:${Version.BOOTSTRAP}")
     implementation("org.webjars:jquery:${Version.JQUERY}")
+    implementation("org.springframework.boot:spring-boot-starter-amqp")
 
     runtimeOnly("org.hsqldb:hsqldb")
 
@@ -19,4 +20,5 @@ dependencies {
     testImplementation("org.mockito.kotlin:mockito-kotlin:${Version.MOCKITO}")
     testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     testImplementation("org.apache.httpcomponents.client5:httpclient5")
+
 }

@@ -8,6 +8,7 @@ import es.unizar.urlshortener.core.usecases.RedirectUseCase
 import es.unizar.urlshortener.core.usecases.CreateQrUseCase
 import es.unizar.urlshortener.core.usecases.ReachableUrlCase
 import es.unizar.urlshortener.core.usecases.BulkShortenUrlUseCase
+import es.unizar.urlshortener.core.RabbitMQService
 import es.unizar.urlshortener.core.InvalidUrlException
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.hateoas.server.mvc.linkTo
@@ -87,6 +88,7 @@ data class ShortUrlDataOut(
  *
  * **Note**: Spring Boot is able to discover this [RestController] without further configuration.
  */
+@Suppress("LongParameterList")
 @RestController
 class UrlShortenerControllerImpl(
     val redirectUseCase: RedirectUseCase,
@@ -94,7 +96,8 @@ class UrlShortenerControllerImpl(
     val createShortUrlUseCase: CreateShortUrlUseCase,
     val reachableUrlCase: ReachableUrlCase,
     val createQrUseCase: CreateQrUseCase,
-    val bulkShortenUrlUseCase: BulkShortenUrlUseCase
+    val bulkShortenUrlUseCase: BulkShortenUrlUseCase,
+    val rabbitMQService: RabbitMQService
 ) : UrlShortenerController {
 
     @GetMapping("/{id:(?!api|index).*}")
@@ -109,7 +112,7 @@ class UrlShortenerControllerImpl(
 
     @PostMapping("/api/link", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
     override fun shortener(data: ShortUrlDataIn, request: HttpServletRequest): ResponseEntity<ShortUrlDataOut> =
-        if (reachableUrlCase.checkReachable(data.url)){
+        //if (reachableUrlCase.checkReachable(data.url)){
             createShortUrlUseCase.create(
                 url = data.url,
                 data = ShortUrlProperties(
@@ -121,6 +124,8 @@ class UrlShortenerControllerImpl(
                 val h = HttpHeaders()
                 val url = linkTo<UrlShortenerControllerImpl> { redirectTo(it.hash, request) }.toUri()
                 h.location = url
+
+                /* ANTES CUANDO CREABA DIRECTAMENTE EL QR
                 val qr: Any? = if (data.qr) {
                     // Generar el código QR y asociarlo con la ShortUrl
                     createQrUseCase.generate(data.url, it.hash)
@@ -128,9 +133,18 @@ class UrlShortenerControllerImpl(
                 } else {
                     // NO hay uri
                     null
+                }*/
+
+                 // AHORA ANTES DE CREAR EL QR LO METO A LA COLA DE MENSAJES PARA CREARLO CUANDO SE RECIBA EL MENSAJE
+                val qr: Any? = if (data.qr) {
+                    // Enviar mensaje a la cola para generar el código QR
+                    rabbitMQService.sendMessage("myQueue","GENERATE_QR:${it.hash}")
+                    linkTo<UrlShortenerControllerImpl> { qr(it.hash, request) }.toUri()
+                } else {
+                    // NO hay uri
+                    null
                 }
 
-                
                 val response = ShortUrlDataOut(
                     url = url,
                     properties = mapOf(
@@ -139,11 +153,12 @@ class UrlShortenerControllerImpl(
                     )   
                 )
 
+
                 ResponseEntity<ShortUrlDataOut>(response, h, HttpStatus.CREATED)
             }
-        } else {
+        /* } else {
             throw InvalidUrlException(data.url)
-        }
+        }*/
 
     /*
      *  Get the QR code of a short url identified by its [id].

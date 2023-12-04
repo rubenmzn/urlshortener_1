@@ -11,6 +11,8 @@ dependencies {
     implementation("commons-validator:commons-validator:${Version.COMMONS_VALIDATOR}")
     implementation("com.google.guava:guava:${Version.GUAVA}")
     implementation("io.github.g0dkar:qrcode-kotlin-jvm:3.3.0")
+    implementation("org.springframework.boot:spring-boot-starter-amqp")
+    
 
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")

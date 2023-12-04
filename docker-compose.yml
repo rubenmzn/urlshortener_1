@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+# POSIBLE CONFIGURACION PARA EL DOCKER COMPOSE
+# services:
+# app:
+#   build: ./app
+#   environment:
+#     - SPRING_PROFILES_ACTIVE=main
+# workwer1:
+#   build: ./worker
+#   environment:
+#     - SPRING_PROFILES_ACTIVE=worker1
+# workwer2:
+#   build: ./worker
+#   environment:
+#     - SPRING_PROFILES_ACTIVE=worker2
+# rabbitmq:
+#   image: "rabbitmq:management"
+#   ports:
+#     - "5672:5672"
+#     - "15672:15672"
