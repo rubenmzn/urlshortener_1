@@ -73,5 +73,4 @@ class ApplicationConfiguration(
     fun myQueue(): Queue {
         return Queue("myQueue", false)
     }
-
 }
