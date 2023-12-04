@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets
 import io.github.g0dkar.qrcode.QRCode
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.amqp.rabbit.annotation.RabbitListener
+import org.springframework.beans.factory.annotation.Autowired
 
 
 import java.io.ByteArrayOutputStream
@@ -49,6 +50,7 @@ class QrServiceImpl : QrService {
  * Implementation of the port [RabbitMQService].
  */
 class RabbitMQServiceImpl(
+    @Autowired
     private val rabbitTemplate: RabbitTemplate,
     private val createQrUseCase: CreateQrUseCase
 ) : RabbitMQService {
