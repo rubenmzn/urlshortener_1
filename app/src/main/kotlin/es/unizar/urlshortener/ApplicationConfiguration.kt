@@ -68,4 +68,9 @@ class ApplicationConfiguration(
 
     @Bean
     fun rabbitMQService() = RabbitMQServiceImpl(RabbitTemplate(), createQrUseCase())
+
+    @Bean
+    fun myQueue(): Queue {
+        return Queue("myQueue", false)
+    }
 }
