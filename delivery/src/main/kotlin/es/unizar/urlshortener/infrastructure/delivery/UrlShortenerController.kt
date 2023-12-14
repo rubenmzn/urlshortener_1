@@ -34,6 +34,10 @@ import java.io.FileWriter
 import java.io.IOException
 import org.springframework.core.io.FileSystemResource
 import java.io.InputStream
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import com.opencsv.CSVReaderBuilder
+import java.io.FileInputStream
 
 
 /**
@@ -63,7 +67,7 @@ interface UrlShortenerController {
      /**
      * Generates a qr code for the short url identified by its [id].
      */
-    fun bulkShortenUrl(@RequestParam("file") file: MultipartFile): ResponseEntity<Resource>
+    fun bulkShortenUrl(@RequestParam("file") file: MultipartFile, request: HttpServletRequest): ResponseEntity<Resource>
 }
 
 /**
@@ -96,7 +100,6 @@ class UrlShortenerControllerImpl(
     val createShortUrlUseCase: CreateShortUrlUseCase,
     val reachableUrlCase: ReachableUrlCase,
     val createQrUseCase: CreateQrUseCase,
-    val bulkShortenUrlUseCase: BulkShortenUrlUseCase,
     val rabbitMQService: RabbitMQService
 ) : UrlShortenerController {
 
@@ -173,37 +176,86 @@ class UrlShortenerControllerImpl(
         IMAGE_PNG_VALUE), h, HttpStatus.OK)
     }
 
-      @PostMapping("/api/csv", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])// /api/bulkv cambiar nombre
-    override fun bulkShortenUrl(@RequestParam("file") file: MultipartFile): ResponseEntity<Resource>{ 
+
+    @PostMapping("/api/bulk", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    override fun bulkShortenUrl(@RequestParam("file") file: MultipartFile, request: HttpServletRequest): ResponseEntity<Resource>{ 
+        //No se ha enviado ningun CSV
+        if (file.isEmpty) {
+            return ResponseEntity.badRequest().body(null)
+        }
         val csvData: InputStream = file.inputStream
-        val shortenedUrls = bulkShortenUrlUseCase.processCsv(csvData)
-        val csvFile = createCsvFile(shortenedUrls)
-        val fileReturn: Resource = FileSystemResource(csvFile)
+        val csvReader = CSVReaderBuilder(InputStreamReader(csvData)).build()
+        val header = csvReader.readNext()
+
+        if (!header[0].contains("URI", ignoreCase = true)) {
+             return ResponseEntity.badRequest().body(null)
+        }
+        // Check if the CSV file has content beyond the header
+        val lines = csvReader.readAll()
+        if (lines.isEmpty()) {
+            csvReader.close()
+            return ResponseEntity.badRequest().body(null)
+        }
+        csvReader.close()
+        val responses = mutableListOf<String>()
+
+        for (urlData in lines) {
+            val shortUrlData = ShortUrlDataIn(
+                url = urlData[0],
+                qr = true
+            )
+            responses.add(urlData[0])
+
+            try {
+                val response = shortener(shortUrlData, request)
+
+                if (response.statusCodeValue == 200 || response.statusCodeValue == 201) {
+                    // Obtener la URL acortada de la respuesta
+                    val shortUrl = response.body?.url.toString()
+                    responses.add(shortUrl)
+                    responses.add(response.body?.properties?.get("qr").toString())
+                } else {
+                    responses.add("ERROR")
+                }
+            } catch (e: Exception) {
+                responses.add("ERROR: ${e.message}")
+                responses.add("ERROR: ${e.message}")
+            }
+        }
+         val csvFile = createCsvFile(responses)
+
+        // Asegúrate de cerrar el InputStream después de procesarlo
+        csvData.close()
         return ResponseEntity
-            .ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=${csvFile.name}")
-            .contentType(MediaType.parseMediaType("text/csv")) //csv5? Diferencia
-            .body(fileReturn)
+                .ok()
+                .header(CONTENT_DISPOSITION, "attachment; filename=${csvFile.name}")
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .body(InputStreamResource(FileInputStream(csvFile)))
+        
     }
 
     
 }
 
-private fun createCsvFile(shortenedUrls: List<String>): File { //Libreria generar csv5
-        val csvFile = File.createTempFile("shortened_urls_", ".csv")
+private fun createCsvFile(shortenedUrls: List<String>): File {
+    val csvFile = File.createTempFile("shortened_urls_", ".csv")
 
-        try {
-            val writer = FileWriter(csvFile)
-            writer.append("Original;Acortada\n")
+    try {
+        val writer = FileWriter(csvFile)
+        writer.append("Original;Acortada;QR\n")
 
-            for (url in shortenedUrls) {
-                writer.append("$url\n")
-            }
-
-            writer.close()
-        } catch (e: IOException) {
-            println("Error al leer el archivo CSV: ${e.message}")
+        // Iterar sobre la lista de URL y escribir en dos columnas
+        for (i in 0 until shortenedUrls.size step 3) {
+            val originalUrl = shortenedUrls.getOrNull(i) ?: ""
+            val shortenedUrl = shortenedUrls.getOrNull(i + 1) ?: ""
+            val shortenedQrUrl = shortenedUrls.getOrNull(i + 2) ?: ""
+            writer.append("$originalUrl;$shortenedUrl;$shortenedQrUrl\n")
         }
 
-        return csvFile
+        writer.close()
+    } catch (e: IOException) {
+        println("Error al leer el archivo CSV: ${e.message}")
+    }
+
+    return csvFile
 }

@@ -52,7 +52,7 @@ $(document).ready(
 
         $.ajax({
             type: "POST",
-            url: "/api/csv",
+            url: "/api/bulk",
             data: formData,
             processData: false,
             contentType: false,

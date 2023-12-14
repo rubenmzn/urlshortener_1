@@ -12,6 +12,8 @@ dependencies {
     implementation("com.google.guava:guava:${Version.GUAVA}")
     implementation("io.github.g0dkar:qrcode-kotlin-jvm:3.3.0")
     implementation("org.springframework.boot:spring-boot-starter-amqp")
+    implementation ("com.opencsv:opencsv:5.6")
+
     
 
 
