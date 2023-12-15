@@ -8,7 +8,7 @@ import es.unizar.urlshortener.core.usecases.RedirectUseCase
 import es.unizar.urlshortener.core.usecases.CreateQrUseCase
 import es.unizar.urlshortener.core.usecases.ReachableUrlCase
 import es.unizar.urlshortener.core.usecases.BulkShortenUrlUseCase
-import es.unizar.urlshortener.core.RabbitMQService
+//import es.unizar.urlshortener.core.RabbitMQService
 import es.unizar.urlshortener.core.InvalidUrlException
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.hateoas.server.mvc.linkTo
@@ -100,7 +100,7 @@ class UrlShortenerControllerImpl(
     val createShortUrlUseCase: CreateShortUrlUseCase,
     val reachableUrlCase: ReachableUrlCase,
     val createQrUseCase: CreateQrUseCase,
-    val rabbitMQService: RabbitMQService
+    //val rabbitMQService: RabbitMQService
 ) : UrlShortenerController {
 
     @GetMapping("/{id:(?!api|index).*}")
