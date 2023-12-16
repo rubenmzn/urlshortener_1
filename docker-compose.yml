@@ -1,11 +1,32 @@
 version: '3'
 
+#docker volume create mysql_data
 services:
+  mysql:  
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: mydatabase
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
   rabbitmq:
     image: rabbitmq:3.12-management
     ports:
       - "5672:5672"
       - "15672:15672"
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:  # Creará automáticamente el volumen mysql_data
+
+
+  
 
 # POSIBLE CONFIGURACION PARA EL DOCKER COMPOSE
 # services:

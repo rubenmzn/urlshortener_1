@@ -147,6 +147,7 @@ class UrlShortenerControllerImpl(
                     // NO hay uri
                     null
                 }*/
+                InsertarUrlAcortada(data.url.toString(), url.toString(), true, qr.toString(), 1)
 
                 val response = ShortUrlDataOut(
                     url = url,
