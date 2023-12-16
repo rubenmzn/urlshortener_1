@@ -13,6 +13,14 @@ class Application
  * The main entry point.
  */
 fun main(args: Array<String>) {
-    @Suppress("SpreadOperator")
-    runApplication<Application>(*args)
+     if (args.isEmpty()) {
+        println("Por favor, proporciona el número de puerto como argumento.")
+        return
+    }
+
+    val port = args[0].toInt()
+
+   @Suppress("SpreadOperator")
+    runApplication<Application>(*args, "--server.port=$port")
+
 }

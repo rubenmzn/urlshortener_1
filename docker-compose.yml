@@ -1,30 +1,6 @@
 version: '3'
 
 services:
-  
-  worker1:
-    build:
-      context: .
-      dockerfile: Dip aockerfile
-    command: java -jar app.jar
-    environment:
-      - QUEUE_NAME=autoDeleteQueueAlcanzable
-    ports:
-      - "8080:8080"  # Puertos de la aplicación en el contenedor
-    depends_on:
-      - rabbitmq
-
-  worker2:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: java -jar app.jar
-    environment:
-      - QUEUE_NAME=autoDeleteQueueQr
-    ports:
-      - "8081:8080"  # Puertos de la aplicación en el contenedor
-    depends_on:
-      - rabbitmq
       
   mysql:
     image: mysql:latest
@@ -50,3 +26,5 @@ services:
 
 volumes:
   mysql_data:  # Creará automáticamente el volumen mysql_data tengo eso pero quiero que al levantarse cree una tabla llamada urlServices sino existe
+
+####java -jar app-0.2023.1-SNAPSHOT.jar 8080
