@@ -1,3 +1,5 @@
+-- init.sql
+
 USE mydatabase;
 
 CREATE TABLE IF NOT EXISTS urlServices (
@@ -7,3 +9,5 @@ CREATE TABLE IF NOT EXISTS urlServices (
     qr BOOLEAN,
     alcanzable INT
 );
+
+-- Puedes agregar más comandos SQL según sea necesario

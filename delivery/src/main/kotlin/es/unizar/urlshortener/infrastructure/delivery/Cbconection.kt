@@ -23,7 +23,7 @@ fun InsertarUrlAcortada(url: String, urlAcortada: String, qr: Boolean, qrUrl: St
         try {
             val statement = it.createStatement()
 
-            val sql = "INSERT INTO urlService (url, qrurl, urlacortada, qr, alcanzable) VALUES (?, ?, ?, ?, ?)"
+            val sql = "INSERT INTO urlServices (url, qrurl, urlacortada, qr, alcanzable) VALUES (?, ?, ?, ?, ?)"
             val preparedStatement = it.prepareStatement(sql)
 
             // Parámetros para la consulta

@@ -1,8 +1,7 @@
 version: '3'
 
-#docker volume create mysql_data
 services:
-  mysql:  
+  mysql:
     image: mysql:latest
     environment:
       MYSQL_ROOT_PASSWORD: password
@@ -13,7 +12,8 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # Monta el script SQL en el directorio de inicialización
+    command: --init-file=/docker-entrypoint-initdb.d/init.sql  # Ejecuta el script SQL durante la inicialización
 
   rabbitmq:
     image: rabbitmq:3.12-management
@@ -24,27 +24,4 @@ services:
       - mysql
 
 volumes:
-  mysql_data:  # Creará automáticamente el volumen mysql_data
-
-
-  
-
-# POSIBLE CONFIGURACION PARA EL DOCKER COMPOSE
-# services:
-# app:
-#   build: ./app
-#   environment:
-#     - SPRING_PROFILES_ACTIVE=main
-# workwer1:
-#   build: ./worker
-#   environment:
-#     - SPRING_PROFILES_ACTIVE=worker1
-# workwer2:
-#   build: ./worker
-#   environment:
-#     - SPRING_PROFILES_ACTIVE=worker2
-# rabbitmq:
-#   image: "rabbitmq:management"
-#   ports:
-#     - "5672:5672"
-#     - "15672:15672"
+  mysql_data:  # Creará automáticamente el volumen mysql_data tengo eso pero quiero que al levantarse cree una tabla llamada urlServices sino existe
