@@ -13,8 +13,6 @@ services:
       - "8080:8080"  # Puertos de la aplicación en el contenedor
     depends_on:
       - rabbitmq
-    networks:
-      - mynetwork
 
   worker2:
     build:
@@ -27,10 +25,7 @@ services:
       - "8081:8080"  # Puertos de la aplicación en el contenedor
     depends_on:
       - rabbitmq
-    networks:
-      - mynetwork
-
-
+      
   mysql:
     image: mysql:latest
     environment:
@@ -55,7 +50,3 @@ services:
 
 volumes:
   mysql_data:  # Creará automáticamente el volumen mysql_data tengo eso pero quiero que al levantarse cree una tabla llamada urlServices sino existe
-
-networks:
-  mynetwork:
-    driver: bridge

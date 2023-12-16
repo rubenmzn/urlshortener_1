@@ -6,6 +6,8 @@ import java.sql.DriverManager
 @Suppress("ALL")
 fun ObtenerConexion(): Connection? {
     val jdbcUrl = "jdbc:mysql://localhost:3306/mydatabase"
+    //val jdbcUrl = "jdbc:mysql://mysql:3306/mydatabase"
+
     val username = "myuser"
     val password = "mypassword"
 
