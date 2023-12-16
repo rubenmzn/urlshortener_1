@@ -8,7 +8,7 @@ import es.unizar.urlshortener.core.usecases.ReachableUrlCaseImpl
 import es.unizar.urlshortener.core.usecases.BulkShortenUrlUseCase
 import es.unizar.urlshortener.infrastructure.delivery.HashServiceImpl
 import es.unizar.urlshortener.infrastructure.delivery.QrServiceImpl
-import es.unizar.urlshortener.infrastructure.delivery.RabbitMQServiceImpl
+//import es.unizar.urlshortener.infrastructure.delivery.RabbitMQServiceImpl
 import es.unizar.urlshortener.infrastructure.delivery.ValidatorServiceImpl
 import es.unizar.urlshortener.infrastructure.repositories.ClickEntityRepository
 import es.unizar.urlshortener.infrastructure.repositories.ClickRepositoryServiceImpl
@@ -19,6 +19,12 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.amqp.core.Queue
+import org.springframework.amqp.core.AnonymousQueue
+import org.springframework.amqp.core.*
+import org.springframework.context.annotation.Profile
+
+
+
 /**
  * Wires use cases with service implementations, and services implementations with repositories.
  *
@@ -66,11 +72,40 @@ class ApplicationConfiguration(
     fun bulkShortenUrlUseCase() =
         BulkShortenUrlUseCase(shortUrlRepositoryService(), validatorService(), hashService())
 
-    @Bean
-    fun rabbitMQService() = RabbitMQServiceImpl(RabbitTemplate(), createQrUseCase())
+    /*@Bean
+    fun rabbitMQService() = RabbitMQServiceImpl(RabbitTemplate(), createQrUseCase())*/
 
-    @Bean
+    /*@Bean
     fun myQueue(): Queue {
         return Queue("myQueue", false)
+    }*/
+
+    @Bean
+    fun fanoutExchange(): FanoutExchange {
+        return FanoutExchange("fanoutExchange")
     }
-}
+
+    @Bean
+    fun autoDeleteQueueAlcanzable(): AnonymousQueue {
+        return AnonymousQueue()
+    }
+
+    @Bean
+    fun autoDeleteQueueQr(): AnonymousQueue {
+        return AnonymousQueue()
+    }
+
+    // Define two bindings to bind the queues to the fanout exchange
+    @Bean
+    fun bindingAlcanzable(fanoutExchange: FanoutExchange, autoDeleteQueueAlcanzable: AnonymousQueue): Binding {
+        return BindingBuilder.bind(autoDeleteQueueAlcanzable).to(fanoutExchange)
+    }
+
+    @Bean
+    fun bindingQr(fanoutExchange: FanoutExchange, autoDeleteQueueQr: AnonymousQueue): Binding {
+        return BindingBuilder.bind(autoDeleteQueueQr).to(fanoutExchange)
+    }
+
+
+
+
