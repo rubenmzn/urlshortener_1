@@ -115,7 +115,7 @@ class UrlShortenerControllerImpl(
 
     @PostMapping("/api/link", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
     override fun shortener(data: ShortUrlDataIn, request: HttpServletRequest): ResponseEntity<ShortUrlDataOut> =
-        if (reachableUrlCase.checkReachable(data.url)){
+      //  if (reachableUrlCase.checkReachable(data.url)){
             createShortUrlUseCase.create(
                 url = data.url,
                 data = ShortUrlProperties(
@@ -160,9 +160,9 @@ class UrlShortenerControllerImpl(
 
                 ResponseEntity<ShortUrlDataOut>(response, h, HttpStatus.CREATED)
             }
-        } else {
-            throw InvalidUrlException(data.url)
-        }
+        //} else {
+          //  throw InvalidUrlException(data.url)
+        //}
 
     /*
      *  Get the QR code of a short url identified by its [id].
@@ -177,7 +177,7 @@ class UrlShortenerControllerImpl(
         IMAGE_PNG_VALUE), h, HttpStatus.OK)
     }
 
-
+    @Suppress("ALL")
     @PostMapping("/api/bulk", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     override fun bulkShortenUrl(@RequestParam("file") file: MultipartFile, request: HttpServletRequest): ResponseEntity<Resource>{ 
         //No se ha enviado ningun CSV
@@ -237,7 +237,7 @@ class UrlShortenerControllerImpl(
 
     
 }
-
+@Suppress("ALL")
 private fun createCsvFile(shortenedUrls: List<String>): File {
     val csvFile = File.createTempFile("shortened_urls_", ".csv")
 

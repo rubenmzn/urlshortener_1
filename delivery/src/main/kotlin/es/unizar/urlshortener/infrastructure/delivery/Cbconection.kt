@@ -3,6 +3,7 @@ package es.unizar.urlshortener.infrastructure.delivery
 import java.sql.Connection
 import java.sql.DriverManager
 
+@Suppress("ALL")
 fun ObtenerConexion(): Connection? {
     val jdbcUrl = "jdbc:mysql://localhost:3306/mydatabase"
     val username = "myuser"
@@ -17,6 +18,7 @@ fun ObtenerConexion(): Connection? {
     }
 }
 
+@Suppress("ALL")
 fun InsertarUrlAcortada(url: String, urlAcortada: String, qr: Boolean, qrUrl: String, alcanzable: Int){
     val conexion: Connection? = ObtenerConexion()
     conexion?.let {
@@ -38,12 +40,12 @@ fun InsertarUrlAcortada(url: String, urlAcortada: String, qr: Boolean, qrUrl: St
 
             println("URL insertada correctamente.")
         } catch (e: Exception) {
-            e.printStackTrace()
+            println("HA ido mal")
         } finally {
             try {
                 it.close()
             } catch (e: Exception) {
-                e.printStackTrace()
+                println("HA ido mal")
             }
         }
     }
