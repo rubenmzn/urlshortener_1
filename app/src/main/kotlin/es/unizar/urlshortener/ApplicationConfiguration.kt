@@ -105,7 +105,6 @@ class ApplicationConfiguration(
     fun bindingQr(fanoutExchange: FanoutExchange, autoDeleteQueueQr: AnonymousQueue): Binding {
         return BindingBuilder.bind(autoDeleteQueueQr).to(fanoutExchange)
     }
-
-
+}
 
 
