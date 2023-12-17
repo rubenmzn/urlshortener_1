@@ -8,6 +8,9 @@ import es.unizar.urlshortener.core.usecases.ReachableUrlCaseImpl
 import es.unizar.urlshortener.core.usecases.BulkShortenUrlUseCase
 import es.unizar.urlshortener.infrastructure.delivery.HashServiceImpl
 import es.unizar.urlshortener.infrastructure.delivery.QrServiceImpl
+import es.unizar.urlshortener.infrastructure.delivery.Tut3Receiver1
+import es.unizar.urlshortener.infrastructure.delivery.Tut3Receiver2
+import es.unizar.urlshortener.infrastructure.delivery.Tut3Sender
 //import es.unizar.urlshortener.infrastructure.delivery.RabbitMQServiceImpl
 import es.unizar.urlshortener.infrastructure.delivery.ValidatorServiceImpl
 import es.unizar.urlshortener.infrastructure.repositories.ClickEntityRepository
@@ -107,18 +110,6 @@ class ApplicationConfiguration(
     fun fanout(): FanoutExchange {
         return FanoutExchange("tut.fanout")
     }
-
-    /*
-    @Bean
-    fun autoDeleteQueue1(): Queue {
-        return Queue("q1", false)
-    }
-
-    @Bean
-    fun autoDeleteQueue2(): Queue {
-        return  Queue("q2", false)
-    }
-     */
 
     @Bean
     fun autoDeleteQueue1(): Queue {

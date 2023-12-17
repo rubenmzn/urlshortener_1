@@ -100,6 +100,7 @@ class UrlShortenerControllerImpl(
     val createShortUrlUseCase: CreateShortUrlUseCase,
     val reachableUrlCase: ReachableUrlCase,
     val createQrUseCase: CreateQrUseCase,
+    val tut3Sender: Tut3Sender,
     //val rabbitMQService: RabbitMQService
 ) : UrlShortenerController {
 
@@ -129,24 +130,25 @@ class UrlShortenerControllerImpl(
                 h.location = url
 
                 // ANTES CUANDO CREABA DIRECTAMENTE EL QR
-                val qr: Any? = if (data.qr) {
+                /*val qr: Any? = if (data.qr) {
                     // Generar el código QR y asociarlo con la ShortUrl
                     createQrUseCase.generate(data.url, it.hash)
                     linkTo<UrlShortenerControllerImpl> { qr(it.hash, request) }.toUri()
                 } else {
                     // NO hay uri
                     null
-                }
+                }*/
 
-                 // AHORA ANTES DE CREAR EL QR LO METO A LA COLA DE MENSAJES PARA CREARLO CUANDO SE RECIBA EL MENSAJE
-                /*val qr: Any? = if (data.qr) {
+                // AHORA ANTES DE CREAR EL QR LO METO A LA COLA DE MENSAJES PARA CREARLO CUANDO SE RECIBA EL MENSAJE
+                // Enviar mensaje a la cola para comprobar la alcanzabilidad
+                tut3Sender.send("CHECK_REACHABILITY:${it.hash}:${data.url}")
+                val qr: Any? = if (data.qr) {
                     // Enviar mensaje a la cola para generar el código QR
-                    rabbitMQService.sendMessage("myQueue","GENERATE_QR:${it.hash}")
+                    tut3Sender.send("GENERATE_QR:${it.hash}:${data.url}")
                     linkTo<UrlShortenerControllerImpl> { qr(it.hash, request) }.toUri()
                 } else {
-                    // NO hay uri
                     null
-                }*/
+                }
                 InsertarUrlAcortada(data.url.toString(), url.toString(), true, qr.toString(), 1)
 
                 val response = ShortUrlDataOut(
