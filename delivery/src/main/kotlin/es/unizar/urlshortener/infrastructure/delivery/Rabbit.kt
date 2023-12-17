@@ -1,6 +1,7 @@
 package es.unizar.urlshortener.infrastructure.delivery
 
 import org.springframework.amqp.core.FanoutExchange
+import org.springframework.amqp.core.DirectExchange
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
@@ -18,12 +19,12 @@ import java.util.regex.Pattern
 class Tut3Sender(
     @Autowired private val template: RabbitTemplate,
     @Autowired private val fanout: FanoutExchange,
+    //@Autowired private val direct: DirectExchange,
 ) {
 
     fun send(message: String) {
-        // Enviar el mensaje al intercambio (fanout) que luego lo distribuirá a todas las colas vinculadas
-        template.convertAndSend(fanout.name, "", message)
-        println(" [x] Sent '$message' to fanout exchange")
+         template.convertAndSend(fanout.name, "", message)
+        println(" [x] Sent '$message' to fanout exchange ")
 
         // También puedes enviar el mensaje directamente a una cola específica
         // template.convertAndSend(queue.name, message)
@@ -35,23 +36,25 @@ class Tut3Sender(
 // se creo un receiver para cada cola
 @Suppress("MagicNumber")
 @Component
-class Tut3Receiver1 {
+class AlcanzabilidadReceiver {
 
     @RabbitListener(queues = ["#{autoDeleteQueue1.name}"])
     fun receiveReachabilityMessage(message: String) {
         // Extraer url y el hash de este mensaje "CHECK_REACHABILITY:${it.hash}:${data.url}" 
-        val pattern = Pattern.compile("CHECK_REACHABILITY:(.+):(.+)")
+        val pattern = Pattern.compile("CHECK_REACHABILITY:(\\w+):(.+)")
         val matcher = pattern.matcher(message)
 
         if (matcher.matches()) {
             val hash = matcher.group(1)
             val url = matcher.group(2)
 
+            InsertarUrlAcortada("urlString", "urlAcortada", false, "qrUrlString", 1)
             println(" ALCANZABILIDAD --> Hash: $hash")
-            println(" ALCANZABILIDAD --> URL: $url") // CUIDADO PORQUE COJE: //unizar.es !!!!!!
+            println(" ALCANZABILIDAD --> URL: $url") 
 
             // Llamar a la funcion que comprueba que la url es alcanzable
             // si la url es alcanzable introducirla en la base de datos
+            
             // si no es alcanzable gestion de errores
 
         } else {
@@ -63,17 +66,18 @@ class Tut3Receiver1 {
 
 @Suppress("MagicNumber")
 @Component
-class Tut3Receiver2{
+class QrReceiver { 
 
     @RabbitListener(queues = ["#{autoDeleteQueue2.name}"])
     fun receiveQrGenerationMessage(message: String) {
-        val pattern = Pattern.compile("GENERATE_QR:(.+):(.+)")
+        val pattern = Pattern.compile("GENERATE_QR:(\\w+):(.+)")
         val matcher = pattern.matcher(message)
 
         if (matcher.matches()) {
             val hash = matcher.group(1)
-            val url = matcher.group(2) // CUIDADO PORQUE COJE: //unizar.es !!!!!!
+            val url = matcher.group(2) 
 
+            println("SOY EL RECEIVER 2")
             println(" GENERA QR --> Hash: $hash")
             println(" GENERA QR --> URL: $url") 
 

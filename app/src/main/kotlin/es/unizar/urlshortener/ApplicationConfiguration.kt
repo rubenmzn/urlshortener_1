@@ -8,8 +8,8 @@ import es.unizar.urlshortener.core.usecases.ReachableUrlCaseImpl
 import es.unizar.urlshortener.core.usecases.BulkShortenUrlUseCase
 import es.unizar.urlshortener.infrastructure.delivery.HashServiceImpl
 import es.unizar.urlshortener.infrastructure.delivery.QrServiceImpl
-import es.unizar.urlshortener.infrastructure.delivery.Tut3Receiver1
-import es.unizar.urlshortener.infrastructure.delivery.Tut3Receiver2
+import es.unizar.urlshortener.infrastructure.delivery.AlcanzabilidadReceiver
+import es.unizar.urlshortener.infrastructure.delivery.QrReceiver
 import es.unizar.urlshortener.infrastructure.delivery.Tut3Sender
 //import es.unizar.urlshortener.infrastructure.delivery.RabbitMQServiceImpl
 import es.unizar.urlshortener.infrastructure.delivery.ValidatorServiceImpl
@@ -32,7 +32,7 @@ import javax.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.amqp.rabbit.connection.ConnectionFactory
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory
-
+import org.springframework.amqp.core.DirectExchange
 
 
 /**
@@ -45,7 +45,7 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory
 @Configuration
 class ApplicationConfiguration(
     @Autowired val shortUrlEntityRepository: ShortUrlEntityRepository,
-    @Autowired val clickEntityRepository: ClickEntityRepository
+    @Autowired val clickEntityRepository: ClickEntityRepository,
 ) {
     @Bean
     fun clickRepositoryService() = ClickRepositoryServiceImpl(clickEntityRepository)
@@ -82,14 +82,7 @@ class ApplicationConfiguration(
     @Bean
     fun bulkShortenUrlUseCase() =
         BulkShortenUrlUseCase(shortUrlRepositoryService(), validatorService(), hashService())
-
-    /*@Bean
-    fun rabbitMQService() = RabbitMQServiceImpl(RabbitTemplate(), createQrUseCase())*/
-
-    /*@Bean
-    fun myQueue(): Queue {
-        return Queue("myQueue", false)
-    }*/
+    
 
     @Bean
     fun connectionFactory(): ConnectionFactory {
@@ -105,7 +98,57 @@ class ApplicationConfiguration(
         return template
     }
 
+    @Bean
+    fun fanout(): FanoutExchange {
+        return FanoutExchange("tut.fanout")
+    }
 
+    @Profile("receiverworker1") 
+    internal class Worker1Configuration {
+        @Bean
+        fun autoDeleteQueue1(): Queue {
+            return AnonymousQueue()
+        }
+
+        @Bean
+        fun binding1(fanout: FanoutExchange, autoDeleteQueue1: Queue): Binding {
+            return BindingBuilder.bind(autoDeleteQueue1).to(fanout)
+        }
+
+
+        @Bean
+        fun receiver1(): AlcanzabilidadReceiver {
+            return AlcanzabilidadReceiver()
+        }
+    }
+
+ 
+    @Profile("receiverworker2")
+    internal class Worker2Configuration {
+        @Bean
+        fun autoDeleteQueue2(): Queue {
+            return AnonymousQueue()
+        }
+
+        @Bean 
+        fun binding2(fanout: FanoutExchange, autoDeleteQueue2: Queue): Binding {
+            return BindingBuilder.bind(autoDeleteQueue2).to(fanout)
+        }
+
+        @Bean  
+        fun receiver2(): QrReceiver { 
+            return QrReceiver()
+        }
+    }
+
+    @Profile("sender")
+    @Bean
+    fun sender(): Tut3Sender {
+        return Tut3Sender(rabbitTemplate(connectionFactory()), fanout())
+    }
+  
+
+/* 
     @Bean
     fun fanout(): FanoutExchange {
         return FanoutExchange("tut.fanout")
@@ -130,11 +173,37 @@ class ApplicationConfiguration(
     fun binding2(fanout: FanoutExchange, autoDeleteQueue2: Queue): Binding {
         return BindingBuilder.bind(autoDeleteQueue2).to(fanout)
     }
+*/
+/* 
+    @Bean
+    fun direct(): DirectExchange {
+        return DirectExchange("tut.direct")
+    }
+
+    @Bean
+    fun autoDeleteQueue1(): Queue {
+        return AnonymousQueue()
+    }
+
+    @Bean
+    fun autoDeleteQueue2(): Queue {
+        return AnonymousQueue()
+    }
+
+    @Bean
+    fun binding1(direct: DirectExchange, autoDeleteQueue1: Queue): Binding {
+        return BindingBuilder.bind(autoDeleteQueue1).to(direct).with("worker1")
+    }
+
+    @Bean
+    fun binding2(direct: DirectExchange, autoDeleteQueue2: Queue): Binding {
+        return BindingBuilder.bind(autoDeleteQueue2).to(direct).with("worker2")
+    }
 
     @Profile("sender")
     @Bean
     fun sender(): Tut3Sender {
-        return Tut3Sender(rabbitTemplate(connectionFactory()), fanout())
+        return Tut3Sender(rabbitTemplate(connectionFactory()), direct())
     }
 
     @Profile("worker1")
@@ -149,8 +218,7 @@ class ApplicationConfiguration(
         return Tut3Receiver2()
     }
 
-
-
+    */
 
 }
 
