@@ -3,18 +3,23 @@ version: '3'
 services:
       
   mysql:
-    image: mysql:latest
+    image: mysql:5.6
+    container_name: mysql
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: mydatabase
       MYSQL_USER: myuser
       MYSQL_PASSWORD: mypassword
+      MYSQL_ROOT_HOST: "0.0.0.0"
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+       # Use this option to persist the MySQL DBs in a shared volume.
+      - ./mysqldata:/var/lib/mysql:rw,delegated
+      # Use this option to persist the MySQL DBs in a data volume.
+      # - db_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # Monta el script SQL en el directorio de inicialización
-    command: --init-file=/docker-entrypoint-initdb.d/init.sql  # Ejecuta el script SQL durante la inicialización
+    command: --init-file=/docker-entrypoint-initdb.d/init.sql # Ejecuta el script SQL durante la inicialización
 
   rabbitmq:
     image: rabbitmq:3.12-management

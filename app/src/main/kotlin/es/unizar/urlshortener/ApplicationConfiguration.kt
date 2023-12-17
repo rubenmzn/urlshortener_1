@@ -24,6 +24,11 @@ import org.springframework.amqp.core.FanoutExchange
 import org.springframework.amqp.core.Binding
 import org.springframework.amqp.core.BindingBuilder
 import org.springframework.context.annotation.Profile
+import javax.annotation.PostConstruct
+// anade import value
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.amqp.rabbit.connection.ConnectionFactory
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory
 
 
 
@@ -33,6 +38,7 @@ import org.springframework.context.annotation.Profile
  * **Note**: Spring Boot is able to discover this [Configuration] without further configuration.
  */
 @Suppress("TooManyFunctions")
+@Profile("tut3", "pub-sub", "publish-subscribe")
 @Configuration
 class ApplicationConfiguration(
     @Autowired val shortUrlEntityRepository: ShortUrlEntityRepository,
@@ -83,30 +89,78 @@ class ApplicationConfiguration(
     }*/
 
     @Bean
-    fun fanoutExchange(): FanoutExchange {
-        return FanoutExchange("fanoutExchange")
+    fun connectionFactory(): ConnectionFactory {
+        // Configuración de la conexión
+        return CachingConnectionFactory()
+    }
+
+
+    @Bean
+    fun rabbitTemplate(connectionFactory: ConnectionFactory): RabbitTemplate {
+        val template = RabbitTemplate(connectionFactory)
+        // Configuración adicional si es necesaria
+        return template
+    }
+
+
+    @Bean
+    fun fanout(): FanoutExchange {
+        return FanoutExchange("tut.fanout")
+    }
+
+    /*
+    @Bean
+    fun autoDeleteQueue1(): Queue {
+        return Queue("q1", false)
     }
 
     @Bean
-    fun autoDeleteQueueAlcanzable(): AnonymousQueue {
+    fun autoDeleteQueue2(): Queue {
+        return  Queue("q2", false)
+    }
+     */
+
+    @Bean
+    fun autoDeleteQueue1(): Queue {
         return AnonymousQueue()
     }
 
     @Bean
-    fun autoDeleteQueueQr(): AnonymousQueue {
+    fun autoDeleteQueue2(): Queue {
         return AnonymousQueue()
     }
 
-    // Define two bindings to bind the queues to the fanout exchange
     @Bean
-    fun bindingAlcanzable(fanoutExchange: FanoutExchange, autoDeleteQueueAlcanzable: AnonymousQueue): Binding {
-        return BindingBuilder.bind(autoDeleteQueueAlcanzable).to(fanoutExchange)
+    fun binding1(fanout: FanoutExchange, autoDeleteQueue1: Queue): Binding {
+        return BindingBuilder.bind(autoDeleteQueue1).to(fanout)
     }
 
     @Bean
-    fun bindingQr(fanoutExchange: FanoutExchange, autoDeleteQueueQr: AnonymousQueue): Binding {
-        return BindingBuilder.bind(autoDeleteQueueQr).to(fanoutExchange)
+    fun binding2(fanout: FanoutExchange, autoDeleteQueue2: Queue): Binding {
+        return BindingBuilder.bind(autoDeleteQueue2).to(fanout)
     }
+
+    @Profile("sender")
+    @Bean
+    fun sender(): Tut3Sender {
+        return Tut3Sender(rabbitTemplate(connectionFactory()), fanout())
+    }
+
+    @Profile("worker1")
+    @Bean
+    fun receiver1(): Tut3Receiver1 {
+        return Tut3Receiver1()
+    }
+
+    @Profile("worker2")
+    @Bean
+    fun receiver2(): Tut3Receiver2 {
+        return Tut3Receiver2()
+    }
+
+
+
+
 }
 
 
