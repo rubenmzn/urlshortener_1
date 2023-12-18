@@ -134,7 +134,7 @@ class UrlShortenerControllerImpl(
 
                 // AHORA ANTES DE CREAR EL QR LO METO A LA COLA DE MENSAJES PARA CREARLO CUANDO SE RECIBA EL MENSAJE
                 // Enviar mensaje a la cola para comprobar la alcanzabilidad
-                sender.send("CHECK_REACHABILITY:${it.hash}:${data.url}:${data.qr}")
+                sender.send("CHECK_REACHABILITY:${it.hash}:${data.url}:${data.qr}:${url}")
                 val qr: Any? = if (data.qr) {
                     // Enviar mensaje a la cola para generar el código QR
                     sender.send("GENERATE_QR:${it.hash}:${data.url}")

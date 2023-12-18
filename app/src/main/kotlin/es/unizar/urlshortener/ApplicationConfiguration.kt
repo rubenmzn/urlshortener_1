@@ -81,7 +81,7 @@ class ApplicationConfiguration(
 
     @Bean
     fun createQrUseCase() =
-        CreateQrUseCaseImpl(shortUrlRepositoryService(), qrService(), HashMap<String, ByteArray>())
+        CreateQrUseCaseImpl(shortUrlRepositoryService(), qrService(), HashMap<String, ByteArray>(), urlService())
     
     @Bean
     fun bulkShortenUrlUseCase() =

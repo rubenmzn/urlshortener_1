@@ -32,14 +32,15 @@ class AlcanzabilidadReceiver(
 ){
     @RabbitListener(queues = ["#{autoDeleteQueue1.name}"])
     fun receiveReachabilityMessage(message: String) {
-        // Extraer url y el hash de este mensaje "CHECK_REACHABILITY:${it.hash}:${data.url}:${data.qr}" 
-        val pattern = Pattern.compile("CHECK_REACHABILITY:(\\w+):(.+):(.+)")
+        // Extraer url y el hash de este mensaje "CHECK_REACHABILITY:${it.hash}:${data.url}:${data.qr}:${url}" 
+        val pattern = Pattern.compile("CHECK_REACHABILITY:(\\w+):(.+):(.+):(.+)")
         val matcher = pattern.matcher(message)
 
         if (matcher.matches()) {
             val hash = matcher.group(1)
             val url = matcher.group(2)
             val qrValue = matcher.group(3)
+            val urlAcortada = matcher.group(4)
 
             // Convertir qrValue a boolean (true o false)
             val qr = qrValue.toBoolean()
@@ -47,16 +48,17 @@ class AlcanzabilidadReceiver(
             println(" ALCANZABILIDAD --> Hash: $hash")
             println(" ALCANZABILIDAD --> URL: $url") 
             println(" ALCANZABILIDAD --> QR: $qr")
+            println(" ALCANZABILIDAD --> URL ACORTADA: $urlAcortada")
 
             // mirar si la url ya esta en la base de datos
             if (!urlExiste(url)) {
-                InsertarUrlAcortada(url, "", qr, "", 0)
+                InsertarUrlAcortada(url, urlAcortada, qr, "", 0)
             }
             var isReachable = reachableUrlCase.checkReachable(url)
             if (isReachable){
-                ActualizarUrlAcortada(url, "", qr, "", 1)
+                ActualizarUrlAcortada(url, urlAcortada, qr, "", 1)
             } else{
-                ActualizarUrlAcortada(url, "", qr, "", 2)
+                ActualizarUrlAcortada(url, urlAcortada, qr, "", 2)
             }
 
 

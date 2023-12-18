@@ -4,6 +4,7 @@ package es.unizar.urlshortener.core.usecases
 
 import es.unizar.urlshortener.core.*
 
+
 /**
  * Given an url returns a QR 
  *
@@ -19,7 +20,8 @@ interface CreateQrUseCase {
 class CreateQrUseCaseImpl(
     private val shortUrlRepository: ShortUrlRepositoryService,
     private val qrService: QrService,
-    private val qrRepository: HashMap<String, ByteArray>
+    private val qrRepository: HashMap<String, ByteArray>,
+    private val obtenerUrlInfoServer: UrlService
 ) : CreateQrUseCase {
     // Create a QR code from a given url
     override fun generate(url: String, id: String) {
@@ -46,9 +48,28 @@ class CreateQrUseCaseImpl(
         if (su != null){
                 println("QR: " + su.properties)
                 if (su.properties.qr == true ) {
-                    //println("QR: " + it.properties.qrGenerated)
-                    //it.properties.qrGenerated.toByteArray()
-                   return qrRepository.get(id)!!
+                    // se podria cambiar pero la app se va a lanzar en puerto 8080
+                    // por ello la urlAcortada sera http://localhost:8080/id
+                    val urlAcortada = "http://localhost:8080/" + id
+                    val (urlOriginal, alcanzable) = obtenerUrlInfoServer.obtenerUrlInfoPorts(urlAcortada)
+
+                    if (urlOriginal != null && alcanzable == 1) {
+                        // if es alcanzable == 1 -> devuelve qr
+                        return qrRepository.get(id)!!
+
+                    } else if (urlOriginal != null && alcanzable == 2){
+                        // if es alcanzable == 2 -> dev 400 (url no alcanzable)
+                        throw ForbiddenRedirection(urlAcortada)
+
+                    } else if (urlOriginal != null && alcanzable == 0){
+                        // if es alcanzable == 0 -> dev 400 (retry after 60s)
+                        throw PendingRedirection(retryAfterSeconds = 60)
+
+                    } else {
+                        // Lanzar una excepción en caso de no encontrar la redirección
+                        throw RedirectionNotFound(urlAcortada)
+                    }
+
                 } else {
                     // Existe la url pero no tiene QR: (url invalida? error 403?)
                     throw InvalidUrlException(id)
