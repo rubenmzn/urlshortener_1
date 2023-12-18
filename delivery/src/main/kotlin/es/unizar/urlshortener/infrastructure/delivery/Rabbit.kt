@@ -16,7 +16,7 @@ import java.util.regex.Pattern
 // el mensaje a todas las colas que esten vinculadas a el
 @Suppress("MagicNumber")
 @Component
-class Tut3Sender(
+class Rabbit(
     @Autowired private val template: RabbitTemplate,
     @Autowired private val fanout: FanoutExchange,
     //@Autowired private val direct: DirectExchange,
@@ -34,6 +34,8 @@ class Tut3Sender(
 // En primer lugar se realizao un receiver que se encarga de recibir los mensajes de las colas
 // pero se queria intertar hacer que cada cola fuera consumida por un worker diferente, por lo que
 // se creo un receiver para cada cola
+
+/*
 @Suppress("MagicNumber")
 @Component
 class AlcanzabilidadReceiver {
@@ -63,6 +65,10 @@ class AlcanzabilidadReceiver {
         
     }
 }
+ */
+
+
+/*
 
 @Suppress("MagicNumber")
 @Component
@@ -93,3 +99,7 @@ class QrReceiver {
 
     }
 }
+
+ */
+
+

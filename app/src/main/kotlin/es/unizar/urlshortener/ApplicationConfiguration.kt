@@ -8,9 +8,9 @@ import es.unizar.urlshortener.core.usecases.ReachableUrlCaseImpl
 import es.unizar.urlshortener.core.usecases.BulkShortenUrlUseCase
 import es.unizar.urlshortener.infrastructure.delivery.HashServiceImpl
 import es.unizar.urlshortener.infrastructure.delivery.QrServiceImpl
-import es.unizar.urlshortener.infrastructure.delivery.AlcanzabilidadReceiver
-import es.unizar.urlshortener.infrastructure.delivery.QrReceiver
-import es.unizar.urlshortener.infrastructure.delivery.Tut3Sender
+//import es.unizar.urlshortener.infrastructure.delivery.AlcanzabilidadReceiver
+//import es.unizar.urlshortener.infrastructure.delivery.QrReceiver
+import es.unizar.urlshortener.infrastructure.delivery.Rabbit
 //import es.unizar.urlshortener.infrastructure.delivery.RabbitMQServiceImpl
 import es.unizar.urlshortener.infrastructure.delivery.ValidatorServiceImpl
 import es.unizar.urlshortener.infrastructure.repositories.ClickEntityRepository
@@ -41,7 +41,7 @@ import org.springframework.amqp.core.DirectExchange
  * **Note**: Spring Boot is able to discover this [Configuration] without further configuration.
  */
 @Suppress("TooManyFunctions")
-@Profile("tut3", "pub-sub", "publish-subscribe")
+//@Profile("tut3", "pub-sub", "publish-subscribe")
 @Configuration
 class ApplicationConfiguration(
     @Autowired val shortUrlEntityRepository: ShortUrlEntityRepository,
@@ -103,6 +103,13 @@ class ApplicationConfiguration(
         return FanoutExchange("tut.fanout")
     }
 
+    //@Profile("sender")
+    @Bean
+    fun sender(): Rabbit {
+        return Rabbit(rabbitTemplate(connectionFactory()), fanout())
+    }
+
+/* 
     @Profile("receiverworker1") 
     internal class Worker1Configuration {
         @Bean
@@ -140,85 +147,7 @@ class ApplicationConfiguration(
             return QrReceiver()
         }
     }
-
-    @Profile("sender")
-    @Bean
-    fun sender(): Tut3Sender {
-        return Tut3Sender(rabbitTemplate(connectionFactory()), fanout())
-    }
-  
-
-/* 
-    @Bean
-    fun fanout(): FanoutExchange {
-        return FanoutExchange("tut.fanout")
-    }
-
-    @Bean
-    fun autoDeleteQueue1(): Queue {
-        return AnonymousQueue()
-    }
-
-    @Bean
-    fun autoDeleteQueue2(): Queue {
-        return AnonymousQueue()
-    }
-
-    @Bean
-    fun binding1(fanout: FanoutExchange, autoDeleteQueue1: Queue): Binding {
-        return BindingBuilder.bind(autoDeleteQueue1).to(fanout)
-    }
-
-    @Bean
-    fun binding2(fanout: FanoutExchange, autoDeleteQueue2: Queue): Binding {
-        return BindingBuilder.bind(autoDeleteQueue2).to(fanout)
-    }
 */
-/* 
-    @Bean
-    fun direct(): DirectExchange {
-        return DirectExchange("tut.direct")
-    }
-
-    @Bean
-    fun autoDeleteQueue1(): Queue {
-        return AnonymousQueue()
-    }
-
-    @Bean
-    fun autoDeleteQueue2(): Queue {
-        return AnonymousQueue()
-    }
-
-    @Bean
-    fun binding1(direct: DirectExchange, autoDeleteQueue1: Queue): Binding {
-        return BindingBuilder.bind(autoDeleteQueue1).to(direct).with("worker1")
-    }
-
-    @Bean
-    fun binding2(direct: DirectExchange, autoDeleteQueue2: Queue): Binding {
-        return BindingBuilder.bind(autoDeleteQueue2).to(direct).with("worker2")
-    }
-
-    @Profile("sender")
-    @Bean
-    fun sender(): Tut3Sender {
-        return Tut3Sender(rabbitTemplate(connectionFactory()), direct())
-    }
-
-    @Profile("worker1")
-    @Bean
-    fun receiver1(): Tut3Receiver1 {
-        return Tut3Receiver1()
-    }
-
-    @Profile("worker2")
-    @Bean
-    fun receiver2(): Tut3Receiver2 {
-        return Tut3Receiver2()
-    }
-
-    */
 
 }
 

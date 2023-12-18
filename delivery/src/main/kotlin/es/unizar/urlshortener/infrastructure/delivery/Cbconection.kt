@@ -52,3 +52,76 @@ fun InsertarUrlAcortada(url: String, urlAcortada: String, qr: Boolean, qrUrl: St
         }
     }
 }
+
+@Suppress("ALL")
+fun urlExiste(url: String): Boolean {
+    val conexion: Connection? = ObtenerConexion()
+    conexion?.let {
+        try {
+            val statement = it.createStatement()
+
+            // Consulta para verificar si la URL ya existe en la base de datos
+            val sql = "SELECT COUNT(*) FROM urlServices WHERE url = ?"
+            val preparedStatement = it.prepareStatement(sql)
+
+            // Parámetro para la consulta
+            preparedStatement.setString(1, url)
+
+            // Ejecutar la consulta y obtener el resultado
+            val resultSet = preparedStatement.executeQuery()
+            resultSet.next()
+            val count = resultSet.getInt(1)
+
+            // Si el conteo es mayor que 0, significa que la URL ya existe
+            return count > 0
+        } catch (e: Exception) {
+            println("Hubo un error al verificar la existencia de la URL.")
+            return false
+        } finally {
+            try {
+                it.close()
+            } catch (e: Exception) {
+                println("Hubo un error al cerrar la conexión.")
+            }
+        }
+    }
+    return false
+}
+
+@Suppress("ALL")
+fun obtenerValorAlcanzable(url: String): Int? {
+    val conexion: Connection? = ObtenerConexion()
+    conexion?.let {
+        try {
+            val statement = it.createStatement()
+
+            // Consulta para obtener el valor de la columna 'alcanzable' para la URL específica
+            val sql = "SELECT alcanzable FROM urlServices WHERE url = ?"
+            val preparedStatement = it.prepareStatement(sql)
+
+            // Parámetro para la consulta
+            preparedStatement.setString(1, url)
+
+            // Ejecutar la consulta y obtener el resultado
+            val resultSet = preparedStatement.executeQuery()
+
+            // Si hay resultados, obtener el valor de la columna 'alcanzable'
+            return if (resultSet.next()) {
+                resultSet.getInt("alcanzable")
+            } else {
+                null // La URL no se encontró en la base de datos
+            }
+        } catch (e: Exception) {
+            println("Hubo un error al obtener el valor de alcanzable para la URL.")
+            return null
+        } finally {
+            try {
+                it.close()
+            } catch (e: Exception) {
+                println("Hubo un error al cerrar la conexión.")
+            }
+        }
+    }
+    return null
+}
+

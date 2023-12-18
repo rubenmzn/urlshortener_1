@@ -38,6 +38,8 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import com.opencsv.CSVReaderBuilder
 import java.io.FileInputStream
+//import autowired
+import org.springframework.beans.factory.annotation.Autowired
 
 
 /**
@@ -100,7 +102,7 @@ class UrlShortenerControllerImpl(
     val createShortUrlUseCase: CreateShortUrlUseCase,
     val reachableUrlCase: ReachableUrlCase,
     val createQrUseCase: CreateQrUseCase,
-    val tut3Sender: Tut3Sender,
+    @Autowired val sender: Rabbit,
     //val rabbitMQService: RabbitMQService
 ) : UrlShortenerController {
 
@@ -141,10 +143,10 @@ class UrlShortenerControllerImpl(
 
                 // AHORA ANTES DE CREAR EL QR LO METO A LA COLA DE MENSAJES PARA CREARLO CUANDO SE RECIBA EL MENSAJE
                 // Enviar mensaje a la cola para comprobar la alcanzabilidad
-                tut3Sender.send("CHECK_REACHABILITY:${it.hash}:${data.url}")
+                sender.send("CHECK_REACHABILITY:${it.hash}:${data.url}:${data.qr}")
                 val qr: Any? = if (data.qr) {
                     // Enviar mensaje a la cola para generar el código QR
-                    tut3Sender.send("GENERATE_QR:${it.hash}:${data.url}")
+                    sender.send("GENERATE_QR:${it.hash}:${data.url}")
                     linkTo<UrlShortenerControllerImpl> { qr(it.hash, request) }.toUri()
                 } else {
                     null
