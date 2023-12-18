@@ -42,14 +42,7 @@ interface QrService {
     fun generateQr(url: String): ByteArray
 }
 
-/**
- * [RabbitMQService] is the port to the service that sends a message to a RabbitMQ queue. 
- */
-
-/* 
-interface RabbitMQService{
-    fun sendMessage(queueName: String, message: String)
-    fun receiveFromRabbitmq(message: String)
-    
+interface UrlService {
+    fun obtenerUrlInfoPorts(urlAcortada: String): Pair<String?, Int?>
 }
-*/
+

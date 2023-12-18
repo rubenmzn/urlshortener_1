@@ -109,6 +109,7 @@ class UrlShortenerControllerImpl(
     @GetMapping("/{id:(?!api|index).*}")
     override fun redirectTo(@PathVariable id: String, request: HttpServletRequest): ResponseEntity<Unit> =
         redirectUseCase.redirectTo(id).let {
+            
             logClickUseCase.logClick(id, ClickProperties(ip = request.remoteAddr))
             val h = HttpHeaders()
             h.location = URI.create(it.target)
@@ -131,16 +132,6 @@ class UrlShortenerControllerImpl(
                 val url = linkTo<UrlShortenerControllerImpl> { redirectTo(it.hash, request) }.toUri()
                 h.location = url
 
-                // ANTES CUANDO CREABA DIRECTAMENTE EL QR
-                /*val qr: Any? = if (data.qr) {
-                    // Generar el código QR y asociarlo con la ShortUrl
-                    createQrUseCase.generate(data.url, it.hash)
-                    linkTo<UrlShortenerControllerImpl> { qr(it.hash, request) }.toUri()
-                } else {
-                    // NO hay uri
-                    null
-                }*/
-
                 // AHORA ANTES DE CREAR EL QR LO METO A LA COLA DE MENSAJES PARA CREARLO CUANDO SE RECIBA EL MENSAJE
                 // Enviar mensaje a la cola para comprobar la alcanzabilidad
                 sender.send("CHECK_REACHABILITY:${it.hash}:${data.url}:${data.qr}")
@@ -151,7 +142,6 @@ class UrlShortenerControllerImpl(
                 } else {
                     null
                 }
-                //InsertarUrlAcortada(data.url.toString(), url.toString(), true, qr.toString(), 1)
 
                 val response = ShortUrlDataOut(
                     url = url,
@@ -166,7 +156,8 @@ class UrlShortenerControllerImpl(
             }
         //} else {
           //  throw InvalidUrlException(data.url)
-        //}
+        //} no existe en la base de datos. Puedes proceder con la inserción.")
+                // InsertarUrlAcort
 
     /*
      *  Get the QR code of a short url identified by its [id].

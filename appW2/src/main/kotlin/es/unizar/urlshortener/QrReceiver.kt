@@ -15,12 +15,23 @@ import es.unizar.urlshortener.infrastructure.delivery.InsertarUrlAcortada
 import es.unizar.urlshortener.infrastructure.delivery.urlExiste
 import es.unizar.urlshortener.infrastructure.delivery.obtenerValorAlcanzable
 import java.util.concurrent.TimeUnit
+import es.unizar.urlshortener.core.usecases.CreateQrUseCaseImpl
+import es.unizar.urlshortener.infrastructure.delivery.ValidatorServiceImpl
+import es.unizar.urlshortener.infrastructure.delivery.QrServiceImpl
+import es.unizar.urlshortener.infrastructure.repositories.ShortUrlRepositoryServiceImpl
+import es.unizar.urlshortener.infrastructure.repositories.ShortUrlEntityRepository
+
+
+
+
 
 
 
 @Suppress("MagicNumber")
 @Component
-class QrReceiver { 
+class QrReceiver (
+    val qrCase: CreateQrUseCaseImpl,
+){ 
 
     @RabbitListener(queues = ["#{autoDeleteQueue2.name}"])
     fun receiveQrGenerationMessage(message: String) {
@@ -33,25 +44,7 @@ class QrReceiver {
 
             println(" GENERA QR --> Hash: $hash")
             println(" GENERA QR --> URL: $url") 
-
-            // Quedar comprobandome llamando a la bbdd si la url es alcanzable
-            var valorAlcanzable = obtenerValorAlcanzable(url)
-            // Realizar la comprobación hasta que alcanzable sea 1 o 2
-            while (valorAlcanzable != 1 && valorAlcanzable != 2) {
-                println("La URL no es alcanzable. Esperando antes de la siguiente comprobación...")
-                TimeUnit.SECONDS.sleep(5) // Esperar 5 segundos antes de la siguiente comprobación
-
-                // Volver a obtener el valor de alcanzable
-                valorAlcanzable = obtenerValorAlcanzable(url)
-            }
-
-            // Si alcanzable es 1, generar el QR
-            if (valorAlcanzable == 1) {
-                println("QR generado correctamente.")
-            } else {
-                println("La URL no es alcanzable, no se generará el QR.")
-            }
-            
+            qrCase.generate(url, hash)     
         } else {
             println("Received unrecognized message: $message")
         }

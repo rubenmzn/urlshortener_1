@@ -8,6 +8,7 @@ import es.unizar.urlshortener.core.usecases.ReachableUrlCaseImpl
 import es.unizar.urlshortener.core.usecases.BulkShortenUrlUseCase
 import es.unizar.urlshortener.infrastructure.delivery.HashServiceImpl
 import es.unizar.urlshortener.infrastructure.delivery.QrServiceImpl
+import es.unizar.urlshortener.infrastructure.delivery.UrlServiceImpl
 //import es.unizar.urlshortener.infrastructure.delivery.AlcanzabilidadReceiver
 //import es.unizar.urlshortener.infrastructure.delivery.QrReceiver
 import es.unizar.urlshortener.infrastructure.delivery.Rabbit
@@ -62,8 +63,11 @@ class ApplicationConfiguration(
     @Bean
     fun qrService() = QrServiceImpl()
 
+    @Bean 
+    fun urlService() = UrlServiceImpl()
+
     @Bean
-    fun redirectUseCase() = RedirectUseCaseImpl(shortUrlRepositoryService())
+    fun redirectUseCase() = RedirectUseCaseImpl(/*shortUrlRepositoryService(), */ urlService())
 
     @Bean
     fun logClickUseCase() = LogClickUseCaseImpl(clickRepositoryService())

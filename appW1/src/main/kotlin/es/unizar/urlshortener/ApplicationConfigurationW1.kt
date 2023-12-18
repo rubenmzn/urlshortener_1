@@ -8,6 +8,7 @@ import es.unizar.urlshortener.core.usecases.ReachableUrlCaseImpl
 import es.unizar.urlshortener.core.usecases.BulkShortenUrlUseCase
 import es.unizar.urlshortener.infrastructure.delivery.HashServiceImpl
 import es.unizar.urlshortener.infrastructure.delivery.QrServiceImpl
+import es.unizar.urlshortener.infrastructure.delivery.UrlServiceImpl
 //import es.unizar.urlshortener.infrastructure.delivery.AlcanzabilidadReceiver
 //import es.unizar.urlshortener.infrastructure.delivery.QrReceiver
 //import es.unizar.urlshortener.infrastructure.delivery.RabbitMQServiceImpl
@@ -32,6 +33,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.amqp.rabbit.connection.ConnectionFactory
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory
 import org.springframework.amqp.core.DirectExchange
+
+
 
 
 /**
@@ -61,8 +64,11 @@ class ApplicationConfigurationW1(
     @Bean
     fun qrService() = QrServiceImpl()
 
+    @Bean 
+    fun urlService() = UrlServiceImpl()
+
     @Bean
-    fun redirectUseCase() = RedirectUseCaseImpl(shortUrlRepositoryService())
+    fun redirectUseCase() = RedirectUseCaseImpl(/*shortUrlRepositoryService(), */ urlService())
 
     @Bean
     fun logClickUseCase() = LogClickUseCaseImpl(clickRepositoryService())
@@ -103,43 +109,23 @@ class ApplicationConfigurationW1(
     }
 
 
-    class Worker1Configuration {
-        @Bean
-        fun autoDeleteQueue1(): Queue {
-            return AnonymousQueue()
-        }
-
-        @Bean
-        fun binding1(fanout: FanoutExchange, autoDeleteQueue1: Queue): Binding {
-            return BindingBuilder.bind(autoDeleteQueue1).to(fanout)
-        }
-
-
-        @Bean
-        fun receiver1(): AlcanzabilidadReceiver {
-            return AlcanzabilidadReceiver()
-        }
+   
+    @Bean
+    fun autoDeleteQueue1(): Queue {
+        return AnonymousQueue()
     }
 
- /* 
-    @Profile("receiverworker2")
-    internal class Worker2Configuration {
-        @Bean
-        fun autoDeleteQueue2(): Queue {
-            return AnonymousQueue()
-        }
-
-        @Bean 
-        fun binding2(fanout: FanoutExchange, autoDeleteQueue2: Queue): Binding {
-            return BindingBuilder.bind(autoDeleteQueue2).to(fanout)
-        }
-
-        @Bean  
-        fun receiver2(): QrReceiver { 
-            return QrReceiver()
-        }
+    @Bean
+    fun binding1(fanout: FanoutExchange, autoDeleteQueue1: Queue): Binding {
+        return BindingBuilder.bind(autoDeleteQueue1).to(fanout)
     }
-*/
+
+
+    @Bean
+    fun receiver1(): AlcanzabilidadReceiver {
+        return AlcanzabilidadReceiver(reachableUrlCase())
+    }
+    
 
 }
 

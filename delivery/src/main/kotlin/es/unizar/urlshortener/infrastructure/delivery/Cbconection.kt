@@ -54,6 +54,40 @@ fun InsertarUrlAcortada(url: String, urlAcortada: String, qr: Boolean, qrUrl: St
 }
 
 @Suppress("ALL")
+fun ActualizarUrlAcortada(url: String, urlAcortada: String, qr: Boolean, qrUrl: String, alcanzable: Int) {
+    val conexion: Connection? = ObtenerConexion()
+    conexion?.let {
+        try {
+            val statement = it.createStatement()
+
+            val sql = "UPDATE urlServices SET qrurl=?, urlacortada=?, qr=?, alcanzable=? WHERE url=?"
+            val preparedStatement = it.prepareStatement(sql)
+
+            // Parámetros para la actualización
+            preparedStatement.setString(5, url)
+            preparedStatement.setString(1, qrUrl)
+            preparedStatement.setString(2, urlAcortada)
+            preparedStatement.setBoolean(3, qr)
+            preparedStatement.setInt(4, alcanzable)
+
+            // Ejecutar la actualización
+            preparedStatement.executeUpdate()
+
+            println("URL actualizada correctamente.")
+        } catch (e: Exception) {
+            println("Ha ocurrido un error al actualizar la URL.")
+            e.printStackTrace()
+        } finally {
+            try {
+                it.close()
+            } catch (e: Exception) {
+                println("Ha ocurrido un error al cerrar la conexión.")
+            }
+        }
+    }
+}
+
+@Suppress("ALL")
 fun urlExiste(url: String): Boolean {
     val conexion: Connection? = ObtenerConexion()
     conexion?.let {
@@ -124,4 +158,44 @@ fun obtenerValorAlcanzable(url: String): Int? {
     }
     return null
 }
+@Suppress("ALL")
+fun obtenerUrlInfo(urlAcortada: String): Pair<String?, Int?> {
+    val conexion: Connection? = ObtenerConexion()
+    conexion?.let {
+        try {
+            val statement = it.createStatement()
+
+            // Consulta para obtener la URL original y el valor de 'alcanzable' correspondiente a la URL acortada
+            val sql = "SELECT url, alcanzable FROM urlServices WHERE urlacortada = ?"
+            val preparedStatement = it.prepareStatement(sql)
+
+            // Parámetro para la consulta
+            preparedStatement.setString(1, urlAcortada)
+
+            // Ejecutar la consulta y obtener el resultado
+            val resultSet = preparedStatement.executeQuery()
+
+            // Si hay resultados, obtener la URL original y el valor de 'alcanzable'
+            return if (resultSet.next()) {
+                val urlOriginal = resultSet.getString("url")
+                val alcanzable = resultSet.getInt("alcanzable")
+                Pair(urlOriginal, alcanzable)
+            } else {
+                Pair(null, null) // La URL acortada no se encontró en la base de datos
+            }
+        } catch (e: Exception) {
+            println("Hubo un error al obtener la información para la URL acortada.")
+            return Pair(null, null)
+        } finally {
+            try {
+                it.close()
+            } catch (e: Exception) {
+                println("Hubo un error al cerrar la conexión.")
+            }
+        }
+    }
+    return Pair(null, null)
+}
+
+
 

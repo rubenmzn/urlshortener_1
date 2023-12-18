@@ -12,8 +12,12 @@ import org.springframework.util.StopWatch
 import org.springframework.context.annotation.Profile
 import java.util.regex.Pattern
 import es.unizar.urlshortener.infrastructure.delivery.InsertarUrlAcortada
+import es.unizar.urlshortener.infrastructure.delivery.ActualizarUrlAcortada
 import es.unizar.urlshortener.infrastructure.delivery.urlExiste
 import es.unizar.urlshortener.infrastructure.delivery.obtenerValorAlcanzable
+import es.unizar.urlshortener.core.usecases.ReachableUrlCase
+import es.unizar.urlshortener.core.usecases.ReachableUrlCaseImpl
+import es.unizar.urlshortener.infrastructure.delivery.ValidatorServiceImpl
 
 
 // En primer lugar se realizao un receiver que se encarga de recibir los mensajes de las colas
@@ -23,11 +27,12 @@ import es.unizar.urlshortener.infrastructure.delivery.obtenerValorAlcanzable
 
 @Suppress("MagicNumber")
 @Component
-class AlcanzabilidadReceiver {
-
+class AlcanzabilidadReceiver(
+    val reachableUrlCase: ReachableUrlCaseImpl,
+){
     @RabbitListener(queues = ["#{autoDeleteQueue1.name}"])
     fun receiveReachabilityMessage(message: String) {
-        // Extraer url y el hash de este mensaje "CHECK_REACHABILITY:${it.hash}:${data.url}" 
+        // Extraer url y el hash de este mensaje "CHECK_REACHABILITY:${it.hash}:${data.url}:${data.qr}" 
         val pattern = Pattern.compile("CHECK_REACHABILITY:(\\w+):(.+):(.+)")
         val matcher = pattern.matcher(message)
 
@@ -44,39 +49,16 @@ class AlcanzabilidadReceiver {
             println(" ALCANZABILIDAD --> QR: $qr")
 
             // mirar si la url ya esta en la base de datos
-            if (urlExiste(url)) {
-                println("La URL ya existe en la base de datos.")
-                // Combrobar en la base datos si es alcanzable
-                val valorAlcanzable = obtenerValorAlcanzable(url)
-                if (valorAlcanzable == 0) {
-                    println("No se ha mirado si es alcanzable")
-                    // comprobar alcanzabilidad y update bbdd
-
-                } else if (valorAlcanzable == 1) {
-                    println("La url es alcanzable")
-                    // Por si acaso update por si el qr ahora es true
-                    
-                } else if (valorAlcanzable == 2) {
-                    println("La url no es alcanzable")
-                    // supongo que gestión de errores 
-
-                } else {
-                    println("Ha habido un error al comprobar si la url es alcanzable")
-                }
-
-            } else {
-                println("La URL no existe en la base de datos. Puedes proceder con la inserción.")
-                // Como no se encuentra en la base de datos, se inserta
-                InsertarUrlAcortada(url, "", qr, "", 1)
-                // Esto es como el post, porque aun se tiene porque acortar la url¿?¿ 
-                // pero si insertarla para que eso se pueda comproabr
-                
+            if (!urlExiste(url)) {
+                InsertarUrlAcortada(url, "", qr, "", 0)
+            }
+            var isReachable = reachableUrlCase.checkReachable(url)
+            if (isReachable){
+                ActualizarUrlAcortada(url, "", qr, "", 1)
+            } else{
+                ActualizarUrlAcortada(url, "", qr, "", 2)
             }
 
-            // Llamar a la funcion que comprueba que la url es alcanzable
-            // si la url es alcanzable introducirla en la base de datos
-            
-            // si no es alcanzable gestion de errores
 
         } else {
             println("Received unrecognized message: $message")

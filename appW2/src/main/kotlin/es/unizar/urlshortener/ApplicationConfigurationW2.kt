@@ -8,6 +8,7 @@ import es.unizar.urlshortener.core.usecases.ReachableUrlCaseImpl
 import es.unizar.urlshortener.core.usecases.BulkShortenUrlUseCase
 import es.unizar.urlshortener.infrastructure.delivery.HashServiceImpl
 import es.unizar.urlshortener.infrastructure.delivery.QrServiceImpl
+import es.unizar.urlshortener.infrastructure.delivery.UrlServiceImpl
 //import es.unizar.urlshortener.infrastructure.delivery.AlcanzabilidadReceiver
 //import es.unizar.urlshortener.infrastructure.delivery.QrReceiver
 //import es.unizar.urlshortener.infrastructure.delivery.RabbitMQServiceImpl
@@ -61,8 +62,11 @@ class ApplicationConfigurationW2(
     @Bean
     fun qrService() = QrServiceImpl()
 
+    @Bean 
+    fun urlService() = UrlServiceImpl()
+
     @Bean
-    fun redirectUseCase() = RedirectUseCaseImpl(shortUrlRepositoryService())
+    fun redirectUseCase() = RedirectUseCaseImpl(/*shortUrlRepositoryService(), */ urlService())
 
     @Bean
     fun logClickUseCase() = LogClickUseCaseImpl(clickRepositoryService())
@@ -103,22 +107,22 @@ class ApplicationConfigurationW2(
     }
 
 
-    class Worker2Configuration {
-        @Bean
-        fun autoDeleteQueue2(): Queue {
-            return AnonymousQueue()
-        }
-
-        @Bean 
-        fun binding2(fanout: FanoutExchange, autoDeleteQueue2: Queue): Binding {
-            return BindingBuilder.bind(autoDeleteQueue2).to(fanout)
-        }
-
-        @Bean  
-        fun receiver2(): QrReceiver { 
-            return QrReceiver()
-        }
+    
+    @Bean
+    fun autoDeleteQueue2(): Queue {
+        return AnonymousQueue()
     }
+
+    @Bean 
+    fun binding2(fanout: FanoutExchange, autoDeleteQueue2: Queue): Binding {
+        return BindingBuilder.bind(autoDeleteQueue2).to(fanout)
+    }
+
+    @Bean  
+    fun receiver2(): QrReceiver { 
+        return QrReceiver(createQrUseCase())
+    }
+    
 
 }
 
