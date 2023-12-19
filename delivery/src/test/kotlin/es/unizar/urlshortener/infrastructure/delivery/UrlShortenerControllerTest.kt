@@ -25,6 +25,16 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
+import com.opencsv.CSVReaderBuilder
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.springframework.http.HttpStatus
+import org.springframework.mock.web.MockMultipartFile
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.io.ByteArrayInputStream
+
 @WebMvcTest
 @ContextConfiguration(
     classes = [
@@ -177,5 +187,81 @@ class UrlShortenerControllerTest {
             .andDo(print())
             .andExpect(status().isNotFound)
     }
+
+  
+    @Test
+    fun `bulkShortenUrl returns OK and empty CSV when provided CSV file is empty`() {
+        val csvFile = "".byteInputStream()
+
+        mockMvc.perform(
+            fileUpload("/api/bulk")
+                .file(MockMultipartFile("file", "test.csv", MediaType.MULTIPART_FORM_DATA_VALUE, csvFile))
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.parseMediaType("text/csv")))
+            .andExpect(content().string(""))
+            .andExpect(header().string("Content-Disposition", "attachment; filename=test.csv"))
+    }
+
+    @Test
+    fun `bulkShortenUrl returns BadRequest when CSV file has incorrect header`() {
+        val csvFile = "Invalid Header\nhttp://example.com\n".byteInputStream()
+
+        mockMvc.perform(
+            fileUpload("/api/bulk")
+                .file(MockMultipartFile("file", "test.csv", MediaType.MULTIPART_FORM_DATA_VALUE, csvFile))
+        )
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `bulkShortenUrl returns OK and shortened URLs in CSV file`() {
+        // Create a temporary CSV file with sample data
+        val csvData = """
+            URI
+            http://example.com
+            http://example.org
+        """.trimIndent().byteInputStream()
+
+        val tempCsvFile = Files.createTempFile("test", ".csv")
+        Files.copy(csvData, tempCsvFile, StandardCopyOption.REPLACE_EXISTING)
+
+        mockMvc.perform(
+            fileUpload("/api/bulk")
+                .file(MockMultipartFile("file", "test.csv", MediaType.MULTIPART_FORM_DATA_VALUE,
+                 Files.newInputStream(tempCsvFile)))
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.parseMediaType("text/csv")))
+            .andExpect(header().string("Content-Disposition", "attachment; filename=test.csv"))
+            .andExpect(content()
+            .string("http://example.com;http://localhost/f684a3c4\nhttp://example.org;http://localhost/anotherHash"))
+
+        // Clean up temporary file
+        Files.deleteIfExists(tempCsvFile)
+    }
+
+    @Test
+    fun `bulkShortenUrl returns OK with errors for invalid URLs`() {
+        val csvData = """
+            URI
+            http://valid-url.com
+            invalid-url
+        """.trimIndent().byteInputStream()
+
+        mockMvc.perform(
+            fileUpload("/api/bulk")
+                .file(MockMultipartFile("file", "test.csv", MediaType.MULTIPART_FORM_DATA_VALUE, csvData))
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.parseMediaType("text/csv")))
+            .andExpect(header().string("Content-Disposition", "attachment; filename=test.csv"))
+            .andExpect(content()
+            .string("http://valid-url.com;http://localhost/validHash\ninvalid-url;
+            Error while checking URL reachability"))
+    }
+
+
+
 }
 

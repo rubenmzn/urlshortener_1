@@ -18,66 +18,61 @@ interface CreateQrUseCase {
  *  Implementation of [CreateQrUseCase].
  */
 class CreateQrUseCaseImpl(
-    private val shortUrlRepository: ShortUrlRepositoryService,
     private val qrService: QrService,
-    private val qrRepository: HashMap<String, ByteArray>,
-    private val obtenerUrlInfoServer: UrlService
+    //private val qrRepository: HashMap<String, ByteArray>,
+    private val urlService: UrlService
 ) : CreateQrUseCase {
     // Create a QR code from a given url
     override fun generate(url: String, id: String) {
 
-        // SI su existe quiero que se genere el QR y se guarde en su.properties.qr
-
-        val su = shortUrlRepository.findByKey(id)
-
-        if( su != null ){
-            println("COJO EL IDDD " + id + url)
-            //properties=ShortUrlProperties(ip=127.0.0.1, sponsor=null, safe=true, owner=null, country=null, qr=null))
-            //shortUrlRepository.save(it.copy(properties = it.properties.copy(qrGenerated = qrGenerated.toString())))
+        println("ESTOY EN GENERATE" + id)
+        // Ver si existe la url en la bbdd mysql
+        if (urlService.obtenerUrlExiste(url)){
+            println("ESTOY EN obtenerurlsexiste" + id)
             val qrGenerated = qrService.generateQr(url)
-            qrRepository.put(id, qrGenerated)
+            println("qrgenerated" + id)
+            // qrRepository.put(id, qrGenerated)
+            // Insert a la bbdd del qrGenerated que es el bytearray
+            urlService.obtenerActualizarQr(url, qrGenerated, id)
+            println("actualizadooo" + id)
+
         } else {
             throw RedirectionNotFound(id)
-        } 
+        }
+
     }
 
     // Get the QR code from a given id
     override fun get(id: String): ByteArray {
         println("COJO EL IDDD gett" + id)
-        val su = shortUrlRepository.findByKey(id)
-        if (su != null){
-                println("QR: " + su.properties)
-                if (su.properties.qr == true ) {
-                    // se podria cambiar pero la app se va a lanzar en puerto 8080
-                    // por ello la urlAcortada sera http://localhost:8080/id
-                    val urlAcortada = "http://localhost:8080/" + id
-                    val (urlOriginal, alcanzable) = obtenerUrlInfoServer.obtenerUrlInfoPorts(urlAcortada)
 
-                    if (urlOriginal != null && alcanzable == 1) {
-                        // if es alcanzable == 1 -> devuelve qr
-                        return qrRepository.get(id)!!
+        // se podria cambiar pero la app se va a lanzar en puerto 8080
+        // por ello la urlAcortada sera http://localhost:8080/id
+        val urlAcortada = "http://localhost:8080/" + id
+        val (urlOriginal, alcanzable) = urlService.obtenerUrlInfoPorts(urlAcortada)
 
-                    } else if (urlOriginal != null && alcanzable == 2){
-                        // if es alcanzable == 2 -> dev 400 (url no alcanzable)
-                        throw ForbiddenRedirection(urlAcortada)
+        println("urlOriginal: " + urlOriginal)
+        println("alcanzable: " + alcanzable)
 
-                    } else if (urlOriginal != null && alcanzable == 0){
-                        // if es alcanzable == 0 -> dev 400 (retry after 60s)
-                        throw PendingRedirection(retryAfterSeconds = 60)
+        if (urlOriginal != null && alcanzable == 1) {
+            // if es alcanzable == 1 -> devuelve qr
+            // CAMBIAR ESTOOOOO A UNA BBDDD MYSQL
 
-                    } else {
-                        // Lanzar una excepción en caso de no encontrar la redirección
-                        throw RedirectionNotFound(urlAcortada)
-                    }
+            return urlService.obtenerQrCOde(id)!!
 
-                } else {
-                    // Existe la url pero no tiene QR: (url invalida? error 403?)
-                    throw InvalidUrlException(id)
-                }
-        } else{
-            // NO se encontro el ID: 404 not found
-            throw RedirectionNotFound(id)
+        } else if (urlOriginal != null && alcanzable == 2){
+            // if es alcanzable == 2 -> dev 400 (url no alcanzable)
+            throw ForbiddenRedirection(urlAcortada)
+
+        } else if (urlOriginal != null && alcanzable == 0){
+            // if es alcanzable == 0 -> dev 400 (retry after 60s)
+            throw PendingRedirection(retryAfterSeconds = 60)
+
+        } else {
+            // Lanzar una excepción en caso de no encontrar la redirección
+            throw RedirectionNotFound(urlAcortada)
         }
+
 
     }
             

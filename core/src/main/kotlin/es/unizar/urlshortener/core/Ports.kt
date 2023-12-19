@@ -44,5 +44,9 @@ interface QrService {
 
 interface UrlService {
     fun obtenerUrlInfoPorts(urlAcortada: String): Pair<String?, Int?>
+    fun obtenerUrlExiste(url: String): Boolean
+    fun obtenerActualizarQr(url: String, qr: ByteArray, id: String)
+    fun obtenerQrCOde(id: String): ByteArray?
 }
+
 

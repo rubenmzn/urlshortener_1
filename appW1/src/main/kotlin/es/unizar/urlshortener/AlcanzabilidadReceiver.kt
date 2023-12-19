@@ -33,7 +33,7 @@ class AlcanzabilidadReceiver(
     @RabbitListener(queues = ["#{autoDeleteQueue1.name}"])
     fun receiveReachabilityMessage(message: String) {
         // Extraer url y el hash de este mensaje "CHECK_REACHABILITY:${it.hash}:${data.url}:${data.qr}:${url}" 
-        val pattern = Pattern.compile("CHECK_REACHABILITY:(\\w+):(.+):(.+):(.+)")
+        val pattern = Pattern.compile("CHECK_REACHABILITY;(\\w+);(.+);(.+);(.+)")
         val matcher = pattern.matcher(message)
 
         if (matcher.matches()) {

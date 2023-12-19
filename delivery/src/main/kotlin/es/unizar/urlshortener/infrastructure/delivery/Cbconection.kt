@@ -88,6 +88,38 @@ fun ActualizarUrlAcortada(url: String, urlAcortada: String, qr: Boolean, qrUrl: 
 }
 
 @Suppress("ALL")
+fun actualizarQR(url: String, qr: ByteArray, id: String) {
+    val conexion: Connection? = ObtenerConexion()
+    conexion?.let {
+        try {
+            val statement = it.createStatement()
+
+            val sql = "UPDATE urlServices SET qrCode=?, idQr=? WHERE url=?"
+            val preparedStatement = it.prepareStatement(sql)
+
+            // Parámetros para la actualización
+            preparedStatement.setBytes(1, qr)
+            preparedStatement.setString(2, id)
+            preparedStatement.setString(3, url)
+
+            // Ejecutar la actualización
+            preparedStatement.executeUpdate()
+
+            println("QR actualizada correctamente.")
+        } catch (e: Exception) {
+            println("Ha ocurrido un error al actualizar el QR.")
+            e.printStackTrace()
+        } finally {
+            try {
+                it.close()
+            } catch (e: Exception) {
+                println("Ha ocurrido un error al cerrar la conexión.")
+            }
+        }
+    }
+}
+
+@Suppress("ALL")
 fun urlExiste(url: String): Boolean {
     val conexion: Connection? = ObtenerConexion()
     conexion?.let {
@@ -197,5 +229,40 @@ fun obtenerUrlInfo(urlAcortada: String): Pair<String?, Int?> {
     return Pair(null, null)
 }
 
+@Suppress("ALL")
+fun obtenerValorQr(id: String): ByteArray? {
+    val conexion: Connection? = ObtenerConexion()
+    conexion?.let {
+        try {
+            val statement = it.createStatement()
 
+            // Consulta para obtener el valor de la columna 'alcanzable' para la URL específica
+            val sql = "SELECT qrCode FROM urlServices WHERE idQr = ?"
+            val preparedStatement = it.prepareStatement(sql)
+
+            // Parámetro para la consulta
+            preparedStatement.setString(1, id)
+
+            // Ejecutar la consulta y obtener el resultado
+            val resultSet = preparedStatement.executeQuery()
+
+            // Si hay resultados, obtener el valor de la columna 'alcanzable'
+            return if (resultSet.next()) {
+                resultSet.getBytes("qrCode")
+            } else {
+                null // La URL no se encontró en la base de datos
+            }
+        } catch (e: Exception) {
+            println("Hubo un error al obtener el valor del codigo qr.")
+            return null
+        } finally {
+            try {
+                it.close()
+            } catch (e: Exception) {
+                println("Hubo un error al cerrar la conexión.")
+            }
+        }
+    }
+    return null
+}
 

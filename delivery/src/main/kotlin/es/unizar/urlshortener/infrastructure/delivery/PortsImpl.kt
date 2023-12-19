@@ -50,6 +50,17 @@ class UrlServiceImpl : UrlService {
     override fun obtenerUrlInfoPorts(urlAcortada: String): Pair<String?, Int?> {
         return obtenerUrlInfo(urlAcortada)
     }
+    override fun obtenerUrlExiste(url: String): Boolean{
+        return urlExiste(url)
+    }
+
+    override fun obtenerActualizarQr(url: String, qr: ByteArray, id: String){
+        actualizarQR(url, qr, id)
+    }
+
+    override fun obtenerQrCOde(id: String): ByteArray?{
+        return obtenerValorQr(id)
+    }
     
 }
 

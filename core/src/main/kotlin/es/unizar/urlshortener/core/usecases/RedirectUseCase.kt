@@ -25,9 +25,15 @@ class RedirectUseCaseImpl(
     private val obtenerUrlInfoServer: UrlService
 ) : RedirectUseCase {
     override fun redirectTo(key: String): Redirection {
-        val urlAcortada = key
+
+        println("El valor de 'key' es: $key")
+
+        val urlAcortada = "http://localhost:8080/" + key
         val (urlOriginal, alcanzable) = obtenerUrlInfoServer.obtenerUrlInfoPorts(urlAcortada)
 
+
+        println("La URL es: $urlOriginal")
+        println("El valor de 'alcanzable' es: $alcanzable")
         if (urlOriginal != null && alcanzable == 1) {
             println("La URL original correspondiente a $urlAcortada es: $urlOriginal")
             println("El valor de 'alcanzable' es: $alcanzable")

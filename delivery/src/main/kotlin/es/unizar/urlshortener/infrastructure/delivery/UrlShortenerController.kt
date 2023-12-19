@@ -134,7 +134,7 @@ class UrlShortenerControllerImpl(
 
                 // AHORA ANTES DE CREAR EL QR LO METO A LA COLA DE MENSAJES PARA CREARLO CUANDO SE RECIBA EL MENSAJE
                 // Enviar mensaje a la cola para comprobar la alcanzabilidad
-                sender.send("CHECK_REACHABILITY:${it.hash}:${data.url}:${data.qr}:${url}")
+                sender.send("CHECK_REACHABILITY;${it.hash};${data.url};${data.qr};${url}")
                 val qr: Any? = if (data.qr) {
                     // Enviar mensaje a la cola para generar el código QR
                     sender.send("GENERATE_QR:${it.hash}:${data.url}")
@@ -177,14 +177,21 @@ class UrlShortenerControllerImpl(
     override fun bulkShortenUrl(@RequestParam("file") file: MultipartFile, request: HttpServletRequest): ResponseEntity<Resource>{ 
         //No se ha enviado ningun CSV
         if (file.isEmpty) {
-            return ResponseEntity.badRequest().body(null)
+              return ResponseEntity
+                .ok()
+                .header(CONTENT_DISPOSITION, "attachment; filename=${file.originalFilename}")
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .body(InputStreamResource(file.inputStream))
         }
         val csvData: InputStream = file.inputStream
         val csvReader = CSVReaderBuilder(InputStreamReader(csvData)).build()
         val header = csvReader.readNext()
-
+        var hayQR = false
         if (!header[0].contains("URI", ignoreCase = true)) {
              return ResponseEntity.badRequest().body(null)
+        }
+        if (header[0].contains("QR", ignoreCase = true)) {
+             hayQR = true
         }
         // Check if the CSV file has content beyond the header
         val lines = csvReader.readAll()
@@ -198,7 +205,7 @@ class UrlShortenerControllerImpl(
         for (urlData in lines) {
             val shortUrlData = ShortUrlDataIn(
                 url = urlData[0],
-                qr = true
+                qr = hayQR
             )
             responses.add(urlData[0])
 
@@ -209,16 +216,20 @@ class UrlShortenerControllerImpl(
                     // Obtener la URL acortada de la respuesta
                     val shortUrl = response.body?.url.toString()
                     responses.add(shortUrl)
-                    responses.add(response.body?.properties?.get("qr").toString())
+                    if(hayQR){
+                        responses.add(response.body?.properties?.get("qr").toString())
+                    }
                 } else {
                     responses.add("ERROR")
                 }
             } catch (e: Exception) {
                 responses.add("ERROR: ${e.message}")
-                responses.add("ERROR: ${e.message}")
+                if(hayQR){
+                    responses.add("ERROR: ${e.message}")
+                }
             }
         }
-         val csvFile = createCsvFile(responses)
+         val csvFile = createCsvFile(responses, hayQR)
 
         // Asegúrate de cerrar el InputStream después de procesarlo
         csvData.close()
@@ -233,21 +244,27 @@ class UrlShortenerControllerImpl(
     
 }
 @Suppress("ALL")
-private fun createCsvFile(shortenedUrls: List<String>): File {
+private fun createCsvFile(shortenedUrls: List<String>, hayQR: Boolean): File {
     val csvFile = File.createTempFile("shortened_urls_", ".csv")
 
     try {
         val writer = FileWriter(csvFile)
         writer.append("Original;Acortada;QR\n")
 
-        // Iterar sobre la lista de URL y escribir en dos columnas
-        for (i in 0 until shortenedUrls.size step 3) {
-            val originalUrl = shortenedUrls.getOrNull(i) ?: ""
-            val shortenedUrl = shortenedUrls.getOrNull(i + 1) ?: ""
-            val shortenedQrUrl = shortenedUrls.getOrNull(i + 2) ?: ""
-            writer.append("$originalUrl;$shortenedUrl;$shortenedQrUrl\n")
+        if(hayQR){
+            for (i in 0 until shortenedUrls.size step 3) {
+                val originalUrl = shortenedUrls.getOrNull(i) ?: ""
+                val shortenedUrl = shortenedUrls.getOrNull(i + 1) ?: ""
+                val shortenedQrUrl = shortenedUrls.getOrNull(i + 2) ?: ""
+                writer.append("$originalUrl;$shortenedUrl;$shortenedQrUrl\n")
+            }
+        }else{
+            for (i in 0 until shortenedUrls.size step 2) {
+                val originalUrl = shortenedUrls.getOrNull(i) ?: ""
+                val shortenedUrl = shortenedUrls.getOrNull(i + 1) ?: ""
+                writer.append("$originalUrl;$shortenedUrl\n")
+            }
         }
-
         writer.close()
     } catch (e: IOException) {
         println("Error al leer el archivo CSV: ${e.message}")
