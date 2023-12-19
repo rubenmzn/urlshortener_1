@@ -12,6 +12,7 @@ dependencies {
     implementation("org.webjars:jquery:${Version.JQUERY}")
     implementation("org.springframework.boot:spring-boot-starter-amqp")
     implementation("javax.annotation:javax.annotation-api:1.3.2")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
 
 
     runtimeOnly("org.hsqldb:hsqldb")
