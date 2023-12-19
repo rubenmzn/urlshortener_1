@@ -46,6 +46,10 @@ class CreateQrUseCaseImpl(
     override fun get(id: String): ByteArray {
         println("COJO EL IDDD gett" + id)
 
+        // if el qrCOde se ha generado -> devuelve qr
+
+        // else error 400 retry after 60s
+
         // se podria cambiar pero la app se va a lanzar en puerto 8080
         // por ello la urlAcortada sera http://localhost:8080/id
         val urlAcortada = "http://localhost:8080/" + id
@@ -57,9 +61,12 @@ class CreateQrUseCaseImpl(
         if (urlOriginal != null && alcanzable == 1) {
             // if es alcanzable == 1 -> devuelve qr
             // CAMBIAR ESTOOOOO A UNA BBDDD MYSQL
-
-            return urlService.obtenerQrCOde(id)!!
-
+            if ( urlService.obtenerQrCOde(id) == null){
+                throw PendingRedirection(retryAfterSeconds = 60)
+            } else {
+                return urlService.obtenerQrCOde(id)!!
+            }
+            
         } else if (urlOriginal != null && alcanzable == 2){
             // if es alcanzable == 2 -> dev 400 (url no alcanzable)
             throw ForbiddenRedirection(urlAcortada)
