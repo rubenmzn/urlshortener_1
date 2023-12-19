@@ -25,11 +25,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     + "'>"
                     + msg.url
                     + "</a></div>"
-                    + "<div><img src='" + msg.properties.qr + "' alt='QR Code' width='200' height='200'/></div>";
+                    //+ "<div><img src='" + msg.properties.qr + "' alt='QR Code' width='200' height='200'/></div>";
+                    + "<div><a>" +  msg.properties.qr + "</a></div>";
 
                 // Muestra la etiqueta img con el código QR
-                document.getElementById('qrimg').src = msg.properties.qr;
-                document.getElementById('qrimg').style.display = 'block';
+                //document.getElementById('qrimg').src = msg.properties.qr;
+                //document.getElementById('qrimg').style.display = 'block';
             } else {
                 document.getElementById('result').innerHTML =
                     "<div class='alert alert-success lead'><a target='_blank' href='"
