@@ -22,16 +22,19 @@ import es.unizar.urlshortener.infrastructure.repositories.ShortUrlRepositoryServ
 import es.unizar.urlshortener.infrastructure.repositories.ShortUrlEntityRepository
 
 
-
-
-
-
-
 @Suppress("MagicNumber")
 @Component
 class QrReceiver (
     val qrCase: CreateQrUseCaseImpl,
 ){ 
+
+   /**
+    * Recibe un mensaje de la cola de RabbitMQ y lo procesa, si el mensaje
+    * es de generación de QR, se extrae la información necesaria y se genera el QR.
+    * Esta es la función que ejecuta el worker de generación de QR.
+    *
+    * @param message Mensaje recibido de RabbitMQ.
+    */
 
     @RabbitListener(queues = ["#{autoDeleteQueue2.name}"])
     fun receiveQrGenerationMessage(message: String) {

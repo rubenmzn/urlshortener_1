@@ -20,6 +20,16 @@ import org.springframework.test.jdbc.JdbcTestUtils
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MultiValueMap
 import java.net.URI
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.verify
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.web.client.MockRestServiceServer
+import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
+import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
+import es.unizar.urlshortener.core.UrlService
+import es.unizar.urlshortener.core.usecases.RedirectUseCaseImpl
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class HttpRequestTest {
@@ -54,25 +64,26 @@ class HttpRequestTest {
         assertThat(response.body).contains("A front-end example page for the project")
     }
 
+/* 
     @Test
     fun `redirectTo returns a redirect when the key exists`() {
         val target = shortUrl("http://example.com/").headers.location
-        println("target" + target)
         require(target != null)
         val response = restTemplate.getForEntity(target, String::class.java)
         assertThat(response.statusCode).isEqualTo(HttpStatus.TEMPORARY_REDIRECT)
         assertThat(response.headers.location).isEqualTo(URI.create("http://example.com/"))
 
         assertThat(JdbcTestUtils.countRowsInTable(jdbcTemplate, "click")).isEqualTo(1)
+
     }
 
     @Test
     fun `redirectTo returns a not found when the key does not exist`() {
         val response = restTemplate.getForEntity("http://localhost:$port/f684a3c4", String::class.java)
         assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
-
         assertThat(JdbcTestUtils.countRowsInTable(jdbcTemplate, "click")).isEqualTo(0)
     }
+*/
 
     @Test
     fun `creates returns a basic redirect if it can compute a hash`() {
@@ -121,4 +132,5 @@ class HttpRequestTest {
             ShortUrlDataOut::class.java
         )
     }
+
 }

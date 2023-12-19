@@ -3,6 +3,10 @@ package es.unizar.urlshortener.infrastructure.delivery
 import java.sql.Connection
 import java.sql.DriverManager
 
+/*
+ * Establece una conexion con la base de datos
+ * @return Connection
+ */
 @Suppress("ALL")
 fun ObtenerConexion(): Connection? {
     val jdbcUrl = "jdbc:mysql://localhost:3306/mydatabase"
@@ -20,6 +24,14 @@ fun ObtenerConexion(): Connection? {
     }
 }
 
+/*
+ * Inserta una url acortada en la base de datos
+ * @param url Url original
+ * @param urlAcortada Url acortada
+ * @param qr Booleano que indica si la url tiene qr
+ * @param qrUrl Url del qr
+ * @param alcanzable Valor de alcanzable 0 no se ha comprobado, 1 alcanzable, 2 no alcanzable
+ */
 @Suppress("ALL")
 fun InsertarUrlAcortada(url: String, urlAcortada: String, qr: Boolean, qrUrl: String, alcanzable: Int){
     val conexion: Connection? = ObtenerConexion()
@@ -32,8 +44,8 @@ fun InsertarUrlAcortada(url: String, urlAcortada: String, qr: Boolean, qrUrl: St
 
             // Parámetros para la consulta
             preparedStatement.setString(1, url)
-            preparedStatement.setBoolean(4, qr)  // Valor para la columna 'qr'
-            preparedStatement.setString(3, urlAcortada)       // Valor para la columna 'alcanzable'
+            preparedStatement.setBoolean(4, qr)  
+            preparedStatement.setString(3, urlAcortada)       
             preparedStatement.setString(2, qrUrl)
             preparedStatement.setInt(5, alcanzable)
 
@@ -53,6 +65,14 @@ fun InsertarUrlAcortada(url: String, urlAcortada: String, qr: Boolean, qrUrl: St
     }
 }
 
+/*
+ * Modifica una url acortada en la base de datos
+ * @param url Url original
+ * @param urlAcortada Url acortada
+ * @param qr Booleano que indica si la url tiene qr
+ * @param qrUrl Url del qr
+ * @param alcanzable Valor de alcanzable 0 no se ha comprobado, 1 alcanzable, 2 no alcanzable
+ */
 @Suppress("ALL")
 fun ActualizarUrlAcortada(url: String, urlAcortada: String, qr: Boolean, qrUrl: String, alcanzable: Int) {
     val conexion: Connection? = ObtenerConexion()
@@ -87,6 +107,12 @@ fun ActualizarUrlAcortada(url: String, urlAcortada: String, qr: Boolean, qrUrl: 
     }
 }
 
+/*
+ * Modifica el campo del QR en la tabla 
+ * @param url Url original
+ * @param qr ByteArray del QR
+ * @param id Id del QR
+ */
 @Suppress("ALL")
 fun actualizarQR(url: String, qr: ByteArray, id: String) {
     val conexion: Connection? = ObtenerConexion()
@@ -119,6 +145,11 @@ fun actualizarQR(url: String, qr: ByteArray, id: String) {
     }
 }
 
+/*
+ * Verifica si la url está en la base de datos
+ * @param url Url original
+ * @return Booleano que indica si la url está en la base de datos
+ */
 @Suppress("ALL")
 fun urlExiste(url: String): Boolean {
     val conexion: Connection? = ObtenerConexion()
@@ -154,6 +185,11 @@ fun urlExiste(url: String): Boolean {
     return false
 }
 
+/*
+ * Devuelve el valor de alcanzabilidad para una url
+ * @param url Url acortada
+ * @return Booleano que indica si la url acortada está en la base de datos
+ */
 @Suppress("ALL")
 fun obtenerValorAlcanzable(url: String): Int? {
     val conexion: Connection? = ObtenerConexion()
@@ -190,6 +226,12 @@ fun obtenerValorAlcanzable(url: String): Int? {
     }
     return null
 }
+
+/*
+ * Obtiene la url y si es alcanzable
+ * @param url Url acortada
+ * @return Pair con la url original y el valor de alcanzable
+ */
 @Suppress("ALL")
 fun obtenerUrlInfo(urlAcortada: String): Pair<String?, Int?> {
     val conexion: Connection? = ObtenerConexion()
@@ -229,6 +271,11 @@ fun obtenerUrlInfo(urlAcortada: String): Pair<String?, Int?> {
     return Pair(null, null)
 }
 
+/*
+ * Obtiene el valor del qrCode
+ * @param id Id del qr
+ * @return ByteArray del qrCode
+ */
 @Suppress("ALL")
 fun obtenerValorQr(id: String): ByteArray? {
     val conexion: Connection? = ObtenerConexion()

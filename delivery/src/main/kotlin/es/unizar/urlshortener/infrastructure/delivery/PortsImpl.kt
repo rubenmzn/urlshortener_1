@@ -46,6 +46,9 @@ class QrServiceImpl : QrService {
     }     
 }
 
+/**
+ * Implementation of the port [UrlService].
+ */
 class UrlServiceImpl : UrlService {
     override fun obtenerUrlInfoPorts(urlAcortada: String): Pair<String?, Int?> {
         return obtenerUrlInfo(urlAcortada)
@@ -60,6 +63,10 @@ class UrlServiceImpl : UrlService {
 
     override fun obtenerQrCOde(id: String): ByteArray?{
         return obtenerValorQr(id)
+    }
+
+    override fun obtenerInsertar(url: String, urlAcortada: String, qr: Boolean, qrUrl: String, alcanzable: Int){
+        InsertarUrlAcortada(url, urlAcortada, qr, qrUrl, alcanzable)
     }
     
 }

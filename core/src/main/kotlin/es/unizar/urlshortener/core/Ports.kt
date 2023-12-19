@@ -42,11 +42,17 @@ interface QrService {
     fun generateQr(url: String): ByteArray
 }
 
+/**
+ * [UrlService] is the port to the service that manages the conexion with the database.
+ *
+ * **Note**: It is a design decision to create this port. It could be part of the core .
+ */
 interface UrlService {
     fun obtenerUrlInfoPorts(urlAcortada: String): Pair<String?, Int?>
     fun obtenerUrlExiste(url: String): Boolean
     fun obtenerActualizarQr(url: String, qr: ByteArray, id: String)
     fun obtenerQrCOde(id: String): ByteArray?
+    fun obtenerInsertar(url: String, urlAcortada: String, qr: Boolean, qrUrl: String, alcanzable: Int)
 }
 
 

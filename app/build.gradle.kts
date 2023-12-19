@@ -13,7 +13,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-amqp")
     implementation("javax.annotation:javax.annotation-api:1.3.2")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
-
+    implementation("io.mockk:mockk:1.12.0")
 
     runtimeOnly("org.hsqldb:hsqldb")
 
@@ -23,5 +23,6 @@ dependencies {
     testImplementation("org.mockito.kotlin:mockito-kotlin:${Version.MOCKITO}")
     testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     testImplementation("org.apache.httpcomponents.client5:httpclient5")
+    testImplementation("io.mockk:mockk:1.12.0")
 
 }

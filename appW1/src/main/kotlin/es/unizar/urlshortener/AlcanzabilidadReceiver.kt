@@ -20,9 +20,6 @@ import es.unizar.urlshortener.core.usecases.ReachableUrlCaseImpl
 import es.unizar.urlshortener.infrastructure.delivery.ValidatorServiceImpl
 
 
-// En primer lugar se realizao un receiver que se encarga de recibir los mensajes de las colas
-// pero se queria intertar hacer que cada cola fuera consumida por un worker diferente, por lo que
-// se creo un receiver para cada cola
 
 
 @Suppress("MagicNumber")
@@ -30,6 +27,14 @@ import es.unizar.urlshortener.infrastructure.delivery.ValidatorServiceImpl
 class AlcanzabilidadReceiver(
     val reachableUrlCase: ReachableUrlCaseImpl,
 ){
+    /**
+     * Método que se ejecuta cuando se recibe un mensaje de alcanzabilidad.
+     * Analiza el mensaje, extrae la información necesaria y realiza las operaciones correspondientes.
+     * Este es el método que ejecua el worker de alcanzabilidad.
+     *
+     * @param message Mensaje recibido de RabbitMQ.
+     */
+
     @RabbitListener(queues = ["#{autoDeleteQueue1.name}"])
     fun receiveReachabilityMessage(message: String) {
         // Extraer url y el hash de este mensaje "CHECK_REACHABILITY:${it.hash}:${data.url}:${data.qr}:${url}" 
@@ -37,18 +42,12 @@ class AlcanzabilidadReceiver(
         val matcher = pattern.matcher(message)
 
         if (matcher.matches()) {
-            val hash = matcher.group(1)
             val url = matcher.group(2)
             val qrValue = matcher.group(3)
             val urlAcortada = matcher.group(4)
 
             // Convertir qrValue a boolean (true o false)
             val qr = qrValue.toBoolean()
-
-            println(" ALCANZABILIDAD --> Hash: $hash")
-            println(" ALCANZABILIDAD --> URL: $url") 
-            println(" ALCANZABILIDAD --> QR: $qr")
-            println(" ALCANZABILIDAD --> URL ACORTADA: $urlAcortada")
 
             // mirar si la url ya esta en la base de datos
             if (!urlExiste(url)) {
@@ -60,7 +59,6 @@ class AlcanzabilidadReceiver(
             } else{
                 ActualizarUrlAcortada(url, urlAcortada, qr, "", 2)
             }
-
 
         } else {
             println("Received unrecognized message: $message")

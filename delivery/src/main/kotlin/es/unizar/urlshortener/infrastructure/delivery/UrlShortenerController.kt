@@ -7,9 +7,12 @@ import es.unizar.urlshortener.core.usecases.LogClickUseCase
 import es.unizar.urlshortener.core.usecases.RedirectUseCase
 import es.unizar.urlshortener.core.usecases.CreateQrUseCase
 import es.unizar.urlshortener.core.usecases.ReachableUrlCase
-import es.unizar.urlshortener.core.usecases.BulkShortenUrlUseCase
-//import es.unizar.urlshortener.core.RabbitMQService
 import es.unizar.urlshortener.core.InvalidUrlException
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.parameters.RequestBody
+import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.hateoas.server.mvc.linkTo
 import org.springframework.http.HttpHeaders
@@ -38,7 +41,6 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import com.opencsv.CSVReaderBuilder
 import java.io.FileInputStream
-//import autowired
 import org.springframework.beans.factory.annotation.Autowired
 
 
@@ -103,9 +105,18 @@ class UrlShortenerControllerImpl(
     val reachableUrlCase: ReachableUrlCase,
     val createQrUseCase: CreateQrUseCase,
     @Autowired val sender: Rabbit,
-    //val rabbitMQService: RabbitMQService
 ) : UrlShortenerController {
 
+    @Operation(
+        summary = "Redirige a la URL especificada",
+        description = "Redirige a la URL correspondiente al ID proporcionado.",
+        responses = [
+            ApiResponse(responseCode = "302", description = "Redirección exitosa",
+                content = [Content()]),
+            ApiResponse(responseCode = "404", description = "ID no encontrado",
+                content = [Content()])
+        ]
+    )
     @GetMapping("/{id:(?!api|index).*}")
     override fun redirectTo(@PathVariable id: String, request: HttpServletRequest): ResponseEntity<Unit> =
         redirectUseCase.redirectTo(id).let {
@@ -117,6 +128,16 @@ class UrlShortenerControllerImpl(
             ResponseEntity<Unit>(h, HttpStatus.valueOf(it.mode))
         }
 
+    @Operation(
+        summary = "Acorta una URL y genera un código QR opcionalmente",
+        description = "Crea una URL corta para la URL proporcionada, con la opción de generar un código QR.",
+        responses = [
+            ApiResponse(responseCode = "201", description = "URL corta creada exitosamente",
+                        content = [Content(mediaType = "application/json")]),
+            ApiResponse(responseCode = "400", description = "Error en la solicitud o datos inválidos",
+                        content = [Content(mediaType = "application/json")])
+        ]
+    )
     @PostMapping("/api/link", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
     override fun shortener(data: ShortUrlDataIn, request: HttpServletRequest): ResponseEntity<ShortUrlDataOut> =
       //  if (reachableUrlCase.checkReachable(data.url)){
@@ -154,15 +175,19 @@ class UrlShortenerControllerImpl(
 
                 ResponseEntity<ShortUrlDataOut>(response, h, HttpStatus.CREATED)
             }
-        //} else {
-          //  throw InvalidUrlException(data.url)
-        //} no existe en la base de datos. Puedes proceder con la inserción.")
-                // InsertarUrlAcort
 
-    /*
-     *  Get the QR code of a short url identified by its [id].
-     */  
-
+    @Operation(
+        summary = "Obtiene el código QR para una URI específica",
+        description = "Obtiene el código QR correspondiente al ID proporcionado.",
+        responses = [
+            ApiResponse(responseCode = "200", description = "Éxito en la obtención del código QR",
+                        content = [Content(mediaType = "image/png")]),
+            ApiResponse(responseCode = "404", description = "ID no encontrado o código QR no habilitado",
+                        content = [Content()]),
+            ApiResponse(responseCode = "400", description = "URI de destino no validada todavía",
+                        content = [Content()])
+        ]
+    )
     @GetMapping("/{id:(?!api|index).*}/qr")
     override fun qr(@PathVariable id: String, request: HttpServletRequest): ResponseEntity<ByteArrayResource> {
         // Devolver el QR 
@@ -172,10 +197,20 @@ class UrlShortenerControllerImpl(
         IMAGE_PNG_VALUE), h, HttpStatus.OK)
     }
 
+    @Operation(
+        summary = "Procesa un archivo CSV para crear múltiples URL cortas",
+        description = "Procesa un archivo CSV que contiene URIs para crear múltiples URL cortas, y opcionalmente QRs.",
+        responses = [
+            ApiResponse(responseCode = "201", description = "URLs cortas creadas exitosamente",
+                        content = [Content(mediaType = "text/csv")]),
+            ApiResponse(responseCode = "400", description = "Error en la solicitud o datos inválidos",
+                        content = [Content(mediaType = "application/json")]),
+            ApiResponse(responseCode = "200", description = "El fichero está vacío")
+        ]
+    )
     @Suppress("ALL")
     @PostMapping("/api/bulk", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     override fun bulkShortenUrl(@RequestParam("file") file: MultipartFile, request: HttpServletRequest): ResponseEntity<Resource>{ 
-        //No se ha enviado ningun CSV
         if (file.isEmpty) {
               return ResponseEntity
                 .ok()
@@ -193,7 +228,6 @@ class UrlShortenerControllerImpl(
         if (header[0].contains("QR", ignoreCase = true)) {
              hayQR = true
         }
-        // Check if the CSV file has content beyond the header
         val lines = csvReader.readAll()
         if (lines.isEmpty()) {
             csvReader.close()
@@ -231,7 +265,6 @@ class UrlShortenerControllerImpl(
         }
          val csvFile = createCsvFile(responses, hayQR)
 
-        // Asegúrate de cerrar el InputStream después de procesarlo
         csvData.close()
         return ResponseEntity
                 .ok()
@@ -241,8 +274,8 @@ class UrlShortenerControllerImpl(
         
     }
 
-    
 }
+
 @Suppress("ALL")
 private fun createCsvFile(shortenedUrls: List<String>, hayQR: Boolean): File {
     val csvFile = File.createTempFile("shortened_urls_", ".csv")

@@ -21,23 +21,26 @@ interface RedirectUseCase {
  * Implementation of [RedirectUseCase].
  */
 class RedirectUseCaseImpl(
-    // private val shortUrlRepository: ShortUrlRepositoryService,
     private val obtenerUrlInfoServer: UrlService
 ) : RedirectUseCase {
+
+    /**
+     * Given a key returns a [Redirection] that contains a [URI target][Redirection.target]
+     * and an [HTTP redirection mode][Redirection.mode].
+     *
+     * @param key Key of the redirection.
+     * @return [Redirection] that contains a [URI target][Redirection.target]
+     * and an [HTTP redirection mode][Redirection.mode].
+     * @throws RedirectionNotFound if the redirection is not found.
+     */
+
     override fun redirectTo(key: String): Redirection {
 
-        println("El valor de 'key' es: $key")
 
         val urlAcortada = "http://localhost:8080/" + key
         val (urlOriginal, alcanzable) = obtenerUrlInfoServer.obtenerUrlInfoPorts(urlAcortada)
 
-
-        println("La URL es: $urlOriginal")
-        println("El valor de 'alcanzable' es: $alcanzable")
         if (urlOriginal != null && alcanzable == 1) {
-            println("La URL original correspondiente a $urlAcortada es: $urlOriginal")
-            println("El valor de 'alcanzable' es: $alcanzable")
-
             // Construir y devolver el objeto Redirection
             return Redirection(target = urlOriginal.toString(), mode = 307)
         } else if (urlOriginal != null && alcanzable == 2){

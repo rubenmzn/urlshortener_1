@@ -5,14 +5,10 @@ import es.unizar.urlshortener.core.usecases.LogClickUseCaseImpl
 import es.unizar.urlshortener.core.usecases.RedirectUseCaseImpl
 import es.unizar.urlshortener.core.usecases.CreateQrUseCaseImpl
 import es.unizar.urlshortener.core.usecases.ReachableUrlCaseImpl
-import es.unizar.urlshortener.core.usecases.BulkShortenUrlUseCase
 import es.unizar.urlshortener.infrastructure.delivery.HashServiceImpl
 import es.unizar.urlshortener.infrastructure.delivery.QrServiceImpl
 import es.unizar.urlshortener.infrastructure.delivery.UrlServiceImpl
-//import es.unizar.urlshortener.infrastructure.delivery.AlcanzabilidadReceiver
-//import es.unizar.urlshortener.infrastructure.delivery.QrReceiver
 import es.unizar.urlshortener.infrastructure.delivery.Rabbit
-//import es.unizar.urlshortener.infrastructure.delivery.RabbitMQServiceImpl
 import es.unizar.urlshortener.infrastructure.delivery.ValidatorServiceImpl
 import es.unizar.urlshortener.infrastructure.repositories.ClickEntityRepository
 import es.unizar.urlshortener.infrastructure.repositories.ClickRepositoryServiceImpl
@@ -29,7 +25,6 @@ import org.springframework.amqp.core.Binding
 import org.springframework.amqp.core.BindingBuilder
 import org.springframework.context.annotation.Profile
 import javax.annotation.PostConstruct
-// anade import value
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.amqp.rabbit.connection.ConnectionFactory
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory
@@ -42,7 +37,6 @@ import org.springframework.amqp.core.DirectExchange
  * **Note**: Spring Boot is able to discover this [Configuration] without further configuration.
  */
 @Suppress("TooManyFunctions")
-//@Profile("tut3", "pub-sub", "publish-subscribe")
 @Configuration
 class ApplicationConfiguration(
     @Autowired val shortUrlEntityRepository: ShortUrlEntityRepository,
@@ -83,14 +77,9 @@ class ApplicationConfiguration(
     fun createQrUseCase() =
         CreateQrUseCaseImpl( qrService(), urlService())
     
-    @Bean
-    fun bulkShortenUrlUseCase() =
-        BulkShortenUrlUseCase(shortUrlRepositoryService(), validatorService(), hashService())
-    
 
     @Bean
     fun connectionFactory(): ConnectionFactory {
-        // Configuración de la conexión
         return CachingConnectionFactory()
     }
 
@@ -98,7 +87,6 @@ class ApplicationConfiguration(
     @Bean
     fun rabbitTemplate(connectionFactory: ConnectionFactory): RabbitTemplate {
         val template = RabbitTemplate(connectionFactory)
-        // Configuración adicional si es necesaria
         return template
     }
 
@@ -107,51 +95,10 @@ class ApplicationConfiguration(
         return FanoutExchange("tut.fanout")
     }
 
-    //@Profile("sender")
     @Bean
     fun sender(): Rabbit {
         return Rabbit(rabbitTemplate(connectionFactory()), fanout())
     }
-
-/* 
-    @Profile("receiverworker1") 
-    internal class Worker1Configuration {
-        @Bean
-        fun autoDeleteQueue1(): Queue {
-            return AnonymousQueue()
-        }
-
-        @Bean
-        fun binding1(fanout: FanoutExchange, autoDeleteQueue1: Queue): Binding {
-            return BindingBuilder.bind(autoDeleteQueue1).to(fanout)
-        }
-
-
-        @Bean
-        fun receiver1(): AlcanzabilidadReceiver {
-            return AlcanzabilidadReceiver()
-        }
-    }
-
- 
-    @Profile("receiverworker2")
-    internal class Worker2Configuration {
-        @Bean
-        fun autoDeleteQueue2(): Queue {
-            return AnonymousQueue()
-        }
-
-        @Bean 
-        fun binding2(fanout: FanoutExchange, autoDeleteQueue2: Queue): Binding {
-            return BindingBuilder.bind(autoDeleteQueue2).to(fanout)
-        }
-
-        @Bean  
-        fun receiver2(): QrReceiver { 
-            return QrReceiver()
-        }
-    }
-*/
 
 }
 

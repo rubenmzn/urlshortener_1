@@ -5,13 +5,9 @@ import es.unizar.urlshortener.core.usecases.LogClickUseCaseImpl
 import es.unizar.urlshortener.core.usecases.RedirectUseCaseImpl
 import es.unizar.urlshortener.core.usecases.CreateQrUseCaseImpl
 import es.unizar.urlshortener.core.usecases.ReachableUrlCaseImpl
-import es.unizar.urlshortener.core.usecases.BulkShortenUrlUseCase
 import es.unizar.urlshortener.infrastructure.delivery.HashServiceImpl
 import es.unizar.urlshortener.infrastructure.delivery.QrServiceImpl
 import es.unizar.urlshortener.infrastructure.delivery.UrlServiceImpl
-//import es.unizar.urlshortener.infrastructure.delivery.AlcanzabilidadReceiver
-//import es.unizar.urlshortener.infrastructure.delivery.QrReceiver
-//import es.unizar.urlshortener.infrastructure.delivery.RabbitMQServiceImpl
 import es.unizar.urlshortener.infrastructure.delivery.ValidatorServiceImpl
 import es.unizar.urlshortener.infrastructure.repositories.ClickEntityRepository
 import es.unizar.urlshortener.infrastructure.repositories.ClickRepositoryServiceImpl
@@ -28,7 +24,6 @@ import org.springframework.amqp.core.Binding
 import org.springframework.amqp.core.BindingBuilder
 import org.springframework.context.annotation.Profile
 import javax.annotation.PostConstruct
-// anade import value
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.amqp.rabbit.connection.ConnectionFactory
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory
@@ -84,10 +79,6 @@ class ApplicationConfigurationW1(
     fun createQrUseCase() =
         CreateQrUseCaseImpl(qrService(), urlService())
     
-    @Bean
-    fun bulkShortenUrlUseCase() =
-        BulkShortenUrlUseCase(shortUrlRepositoryService(), validatorService(), hashService())
-    
 
     @Bean
     fun connectionFactory(): ConnectionFactory {
@@ -107,7 +98,6 @@ class ApplicationConfigurationW1(
     fun fanout(): FanoutExchange {
         return FanoutExchange("tut.fanout")
     }
-
 
    
     @Bean

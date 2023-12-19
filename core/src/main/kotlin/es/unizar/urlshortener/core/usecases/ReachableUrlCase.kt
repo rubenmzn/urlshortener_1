@@ -10,10 +10,11 @@ interface ReachableUrlCase {
     fun checkReachable(url: String): Boolean
 }
 
-
 private const val SUCCESSFUL_RESPONSE_CODE_MIN = 200
 private const val SUCCESSFUL_RESPONSE_CODE_MAX = 299
-
+/**
+ * Implementation of [ReachableUrlCase]
+ */
 class ReachableUrlCaseImpl(
     private val validatorService: ValidatorService,
 ) : ReachableUrlCase {
